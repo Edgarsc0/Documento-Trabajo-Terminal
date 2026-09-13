@@ -1,0 +1,139 @@
+% ============================
+%           GLOSARIO
+% ============================
+
+\chapter*{Glosario}
+
+% Añade "Glosario" a la Tabla de Contenido
+\addcontentsline{toc}{chapter}{Glosario}
+
+\begingroup
+\small
+
+% Separación vertical entre filas
+\renewcommand{\arraystretch}{1.15}
+
+% ============================
+%       TABLA DEL GLOSARIO
+% ============================
+
+\begin{longtable}[l]{
+    @{}
+    >{\raggedright\arraybackslash}p{4.2cm}
+    p{\dimexpr\textwidth-4.2cm\relax}
+    @{}
+    }
+
+    % Cabecera de la primera página
+    \toprule
+    \textbf{Término} & \textbf{Definición}                                \\
+    \midrule
+    \endfirsthead
+
+    % Cabecera repetida en páginas siguientes
+    \toprule
+    \textbf{Término} & \textbf{Definición}                                \\
+    \midrule
+    \endhead
+
+    % Pie de páginas intermedias
+    \midrule
+    \multicolumn{2}{r}{\small\textit{Continúa en la siguiente página...}} \\
+    \endfoot
+
+    % Pie de la última página
+    \bottomrule
+    \endlastfoot
+
+    % ============================
+    %       TÉRMINOS
+    % ============================
+
+    Generación Aumentada por Recuperación
+                     &
+    Patrón arquitectónico utilizado para mejorar el rendimiento y la fiabilidad
+    de los modelos de lenguaje de gran escala mediante la incorporación de
+    información externa, pertinente y verificable durante el proceso de
+    generación de respuestas.
+    \\
+
+    Inteligencia Artificial
+                     &
+    Disciplina de las ciencias de la computación enfocada en el desarrollo de
+    algoritmos y modelos capaces de realizar tareas asociadas con capacidades
+    cognitivas humanas, como el aprendizaje a partir de datos, el razonamiento,
+    la toma de decisiones, la percepción y la comprensión o generación de
+    lenguaje natural.
+    \\
+
+    Interfaz de Programación de Aplicaciones
+                     &
+    Conjunto de reglas, protocolos y especificaciones que define cómo diferentes
+    componentes de software pueden comunicarse e intercambiar información.
+    Funciona como una capa de intermediación que permite a una aplicación
+    solicitar datos o servicios de otra sin necesidad de conocer los detalles
+    internos de su implementación.
+    \\
+
+    Interfaz Web
+                     &
+    Entorno gráfico e interactivo accesible mediante un navegador web que
+    permite la comunicación entre un usuario y los procesos subyacentes de un
+    sistema. Facilita el envío de peticiones, la introducción de datos, la
+    realización de consultas y la visualización de resultados.
+    \\
+
+    Modelo de Lenguaje de Gran Escala
+                     &
+    Modelo de inteligencia artificial basado generalmente en arquitecturas de
+    redes neuronales profundas, como los transformadores, y entrenado con grandes
+    volúmenes de datos. Puede comprender contexto, identificar relaciones
+    semánticas y generar texto coherente a partir de instrucciones o consultas.
+    \\
+
+    Pódcast
+                     &
+    Contenido de audio digital, generalmente organizado en episodios y centrado
+    en uno o varios temas, distribuido para su reproducción bajo demanda. Permite
+    al usuario escuchar el contenido en el momento y dispositivo de su elección.
+    \\
+
+    Procesamiento del Lenguaje Natural
+                     &
+    Subcampo de la inteligencia artificial y de la lingüística computacional
+    dedicado al desarrollo de métodos que permiten a las computadoras analizar,
+    comprender, interpretar y generar lenguaje humano en forma escrita o hablada.
+    \\
+
+    Prototipo
+                     &
+    Modelo preliminar o versión funcional inicial de un producto, sistema o
+    aplicación que se construye para evaluar la viabilidad de un concepto,
+    comprobar sus funcionalidades principales y validar su flujo de trabajo antes
+    de realizar una implementación completa.
+    \\
+
+    Sindicación Realmente Sencilla
+                     &
+    Formato estandarizado para la distribución automática de contenido web que
+    permite publicar y consultar actualizaciones de sitios, especialmente
+    noticias, blogs y otras fuentes que se actualizan con frecuencia.
+    \\
+
+    Síntesis de Voz
+                     &
+    Tecnología que convierte texto escrito en habla artificial audible mediante
+    modelos computacionales capaces de producir señales de audio que reproducen
+    la pronunciación, entonación y ritmo propios del lenguaje hablado.
+    \\
+
+    Web Scraping
+                     &
+    Técnica computacional para la extracción automatizada de información desde
+    sitios web. Consiste en analizar la estructura de una página, identificar los
+    datos de interés y recopilarlos en un formato estructurado para su posterior
+    procesamiento, almacenamiento o análisis.
+    \\
+\end{longtable}
+
+\endgroup

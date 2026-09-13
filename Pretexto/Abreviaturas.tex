@@ -1,0 +1,90 @@
+% ============================
+%        ABREVIATURAS
+% ============================
+
+\chapter*{Abreviaturas}
+
+% Añade "Abreviaturas" a la Tabla de Contenido
+\addcontentsline{toc}{chapter}{Abreviaturas}
+
+\begingroup
+\small
+
+% Separación vertical entre filas
+\renewcommand{\arraystretch}{1.15}
+
+% ============================
+%     TABLA DE ABREVIATURAS
+% ============================
+
+\begin{longtable}[l]{
+    @{}
+    >{\raggedright\arraybackslash}p{3.2cm}
+    p{\dimexpr\textwidth-3.2cm\relax}
+    @{}
+    }
+
+    \toprule
+    \textbf{Abreviatura} & \textbf{Significado}                           \\
+    \midrule
+    \endfirsthead
+
+    % Cabecera repetida en páginas siguientes
+    \toprule
+    \textbf{Abreviatura} & \textbf{Significado}                           \\
+    \midrule
+    \endhead
+
+    % Pie en páginas intermedias
+    \midrule
+    \multicolumn{2}{r}{\small\textit{Continúa en la siguiente página...}} \\
+    \endfoot
+
+    % Pie final
+    \bottomrule
+    \endlastfoot
+
+    AI
+                         &
+    Artificial Intelligence
+    (Inteligencia Artificial)
+    \\
+
+    API
+                         &
+    Application Programming Interface
+    (Interfaz de Programación de Aplicaciones)
+    \\
+
+    LLM
+                         &
+    Large Language Model
+    (Modelo de Lenguaje de Gran Escala)
+    \\
+
+    NLP
+                         &
+    Natural Language Processing
+    (Procesamiento del Lenguaje Natural)
+    \\
+
+    RAG
+                         &
+    Retrieval-Augmented Generation
+    (Generación Aumentada por Recuperación)
+    \\
+
+    RSS
+                         &
+    Really Simple Syndication
+    (Sindicación Realmente Sencilla)
+    \\
+
+    TTS
+                         &
+    Text-to-Speech
+    (Texto a voz)
+    \\
+\end{longtable}
+
+\endgroup

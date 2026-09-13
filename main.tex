@@ -1,0 +1,252 @@
+\documentclass[letterpaper,12pt,oneside]{book}
+
+% ============================================================
+%                        MÁRGENES
+% ============================================================
+
+\usepackage[
+    top=1in,
+    left=0.9in,
+    right=1.25in,
+    bottom=1in
+]{geometry}
+
+% ============================================================
+%                  CODIFICACIÓN E IDIOMA
+% ============================================================
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage[
+    spanish,
+    es-nodecimaldot,
+    es-tabla
+]{babel}
+
+% Recomendado por biblatex cuando se utiliza babel
+\usepackage{csquotes}
+
+% ============================================================
+%                         FUENTES
+% ============================================================
+
+% Familia tipográfica Times compatible para texto y matemáticas
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+
+% Mejora la composición tipográfica
+\usepackage{microtype}
+
+% ============================================================
+%                   PAQUETES GENERALES
+% ============================================================
+
+% Imágenes
+\usepackage{graphicx}
+
+\graphicspath{
+    {./figs/}
+    {./Images/}
+}
+
+% Gráficos y diagramas
+\usepackage{tikz}
+
+% Control de objetos flotantes
+\usepackage{float}
+
+% Comentarios extensos
+\usepackage{comment}
+
+% Tablas
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{makecell}
+\usepackage{diagbox}
+
+% Espaciado
+\usepackage{setspace}
+
+% Subrayado y tachado
+\usepackage[normalem]{ulem}
+\usepackage{cancel}
+
+% Colores
+\usepackage[table]{xcolor}
+
+% Símbolos
+\usepackage{pifont}
+
+% DOI
+\usepackage{doi}
+
+% Personalización de la tabla de contenido
+\usepackage{tocloft}
+
+% Portada institucional
+\usepackage{titlepage}
+
+% ============================================================
+%                   AJUSTE TIPOGRÁFICO
+% ============================================================
+
+% Flexibilidad adicional para reducir cajas demasiado anchas
+\emergencystretch=2em
+
+% ============================================================
+%                         COLORES
+% ============================================================
+
+% Escala de colores
+\definecolor{catastico}{RGB}{165,0,38}
+\definecolor{peligroso}{RGB}{215,48,39}
+\definecolor{moderado}{RGB}{253,141,60}
+\definecolor{menos}{RGB}{254,224,139}
+\definecolor{insignificante}{RGB}{224,243,219}
+
+% Color para resaltado
+\definecolor{highlightcolor}{cmyk}{0.2,0,0,0}
+
+% Verde personalizado
+\definecolor{darkgreen}{HTML}{109930}
+
+% ============================================================
+%                    TIPOS DE COLUMNAS
+% ============================================================
+
+% Columna de ancho fijo alineada a la izquierda
+\newcolumntype{L}[1]{%
+    >{\raggedright\arraybackslash}p{#1}%
+}
+
+% Columna X alineada a la izquierda
+\newcolumntype{Y}{%
+    >{\raggedright\arraybackslash}X%
+}
+
+% ============================================================
+%                  COMANDOS PERSONALIZADOS
+% ============================================================
+
+\newcommand{\LGRG}[1]{%
+    {\leavevmode\color{black}#1}%
+}
+
+\newcommand{\JRM}[1]{%
+    {\leavevmode\color{black}#1}%
+}
+
+\newcommand{\EEN}[1]{%
+    {\leavevmode\color{black}#1}%
+}
+
+% Comentarios
+\newcommand{\com}[1]{%
+    {\bfseries\textcolor{red}{#1}}%
+}
+
+% Texto eliminado y sustitución
+\newcommand{\replace}[2]{%
+    {\textcolor{red}{\cancel{#1}}}%
+    {\bfseries\textcolor{blue}{#2}}%
+}
+
+% Símbolos de verificación
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+% ============================================================
+%                       BIBLIOGRAFÍA
+% ============================================================
+
+\usepackage[
+    backend=biber,
+    style=ieee,
+    sorting=none,
+    maxbibnames=99,
+    minbibnames=99
+]{biblatex}
+
+\addbibresource{References/biblio.bib}
+
+% ============================================================
+%                         ENLACES
+% ============================================================
+
+% Permite dividir URLs largas
+\usepackage{xurl}
+
+% Cargar hyperref al final del preámbulo
+\usepackage{hyperref}
+
+\urlstyle{same}
+
+\hypersetup{
+    colorlinks=true,
+    urlcolor=cyan,
+    linkcolor=black,
+    citecolor=black,
+    filecolor=magenta,
+    pdftitle={Trabajo terminal},
+    pdfencoding=auto
+}
+
+% ============================================================
+%                         DOCUMENTO
+% ============================================================
+
+\begin{document}
+
+% ============================================================
+%                        FRONTMATTER
+% ============================================================
+
+\frontmatter
+
+\include{Pretexto/portada}
+\include{Pretexto/abstract}
+\include{Pretexto/Advertencia}
+\include{Pretexto/frontmater}
+\include{Pretexto/Glosario}
+\include{Pretexto/Abreviaturas}
+
+%\include{Intro/intro}
+
+% ============================================================
+%                         MAINMATTER
+% ============================================================
+
+\mainmatter
+
+\pagestyle{plain}
+
+\include{Ch1/ch1}
+\include{Ch2/ch2}
+\include{Ch3/ch3}
+\include{Ch4/ch4}
+\include{Ch5/ch5}
+\include{Ch6/ch6}
+\include{Ch7/ch7}
+\include{Ch8/ch8}
+
+% ============================================================
+%                        BIBLIOGRAFÍA
+% ============================================================
+
+\printbibliography[
+    heading=bibintoc,
+    title={Referencias}
+]
+
+% ============================================================
+%                        BACKMATTER
+% ============================================================
+
+\backmatter
+
+\include{Ch9/ch9}
+
+\end{document}

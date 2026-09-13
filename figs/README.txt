@@ -1,0 +1,1 @@
+En esta carpeta deben ir colocadas las figuras usadas en el escrito
