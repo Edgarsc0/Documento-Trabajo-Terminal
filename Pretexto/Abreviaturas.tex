@@ -4,18 +4,12 @@
 
 \chapter*{Abreviaturas}
 
-% Añade "Abreviaturas" a la Tabla de Contenido
 \addcontentsline{toc}{chapter}{Abreviaturas}
 
 \begingroup
 \small
 
-% Separación vertical entre filas
 \renewcommand{\arraystretch}{1.15}
-
-% ============================
-%     TABLA DE ABREVIATURAS
-% ============================
 
 \begin{longtable}[l]{
     @{}
@@ -29,18 +23,15 @@
     \midrule
     \endfirsthead
 
-    % Cabecera repetida en páginas siguientes
     \toprule
     \textbf{Abreviatura} & \textbf{Significado}                           \\
     \midrule
     \endhead
 
-    % Pie en páginas intermedias
     \midrule
     \multicolumn{2}{r}{\small\textit{Continúa en la siguiente página...}} \\
     \endfoot
 
-    % Pie final
     \bottomrule
     \endlastfoot
 
@@ -50,40 +41,49 @@
     (Inteligencia Artificial)
     \\
 
-    API
+    DSL
                          &
-    Application Programming Interface
-    (Interfaz de Programación de Aplicaciones)
+    Domain-Specific Language
+    (Lenguaje de Dominio Específico)
     \\
 
-    LLM
+    GDL
                          &
-    Large Language Model
-    (Modelo de Lenguaje de Gran Escala)
+    Game Description Language
+    (Lenguaje de Descripción de Juegos)
     \\
 
-    NLP
+    GGP
                          &
-    Natural Language Processing
-    (Procesamiento del Lenguaje Natural)
+    General Game Playing o General Game Player,
+    según el contexto
     \\
 
-    RAG
+    IA
                          &
-    Retrieval-Augmented Generation
-    (Generación Aumentada por Recuperación)
+    Inteligencia Artificial
     \\
 
-    RSS
+    MCTS
                          &
-    Really Simple Syndication
-    (Sindicación Realmente Sencilla)
+    Monte Carlo Tree Search
+    (Búsqueda de Árbol Monte Carlo)
     \\
 
-    TTS
+    RL
                          &
-    Text-to-Speech
-    (Texto a voz)
+    Reinforcement Learning
+    (Aprendizaje por Refuerzo)
+    \\
+
+    TT
+                         &
+    Trabajo Terminal
+    \\
+
+    UCT
+                         &
+    Upper Confidence Bounds applied to Trees
     \\
 \end{longtable}
 

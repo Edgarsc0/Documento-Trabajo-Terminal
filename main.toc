@@ -1,0 +1,30 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {chapter}{Advertencia}{\es@scroman {ii}}{Doc-Start}%
+\contentsline {chapter}{Glosario}{\es@scroman {vi}}{chapter*.1}%
+\contentsline {chapter}{Abreviaturas}{\es@scroman {viii}}{chapter*.2}%
+\contentsline {chapter}{\numberline {1}Introducción}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Estado del arte}{2}{chapter.2}%
+\contentsline {chapter}{\numberline {3}Marco Teórico}{3}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Inteligencia artificial en juegos}{3}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Juegos de información perfecta}{4}{section.3.2}%
+\contentsline {section}{\numberline {3.3}General Game Playing}{4}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Modelo formal de juego}{5}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Lenguaje de descripción de juegos}{5}{section.3.5}%
+\contentsline {section}{\numberline {3.6}GDL, Ludii y lenguajes de dominio específico}{6}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Intérprete y representación interna}{6}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Árboles de juego y explosión combinatoria}{7}{section.3.8}%
+\contentsline {section}{\numberline {3.9}Minimax}{7}{section.3.9}%
+\contentsline {section}{\numberline {3.10}Poda alfa-beta}{8}{section.3.10}%
+\contentsline {section}{\numberline {3.11}Funciones heurísticas generales}{8}{section.3.11}%
+\contentsline {section}{\numberline {3.12}Monte Carlo Tree Search}{9}{section.3.12}%
+\contentsline {section}{\numberline {3.13}UCT}{9}{section.3.13}%
+\contentsline {section}{\numberline {3.14}Aprendizaje por refuerzo y aprendizaje profundo}{9}{section.3.14}%
+\contentsline {section}{\numberline {3.15}AlphaZero como antecedente moderno}{10}{section.3.15}%
+\contentsline {section}{\numberline {3.16}Síntesis del marco teórico}{10}{section.3.16}%
+\contentsline {chapter}{\numberline {4}Análisis}{12}{chapter.4}%
+\contentsline {chapter}{\numberline {5}Diseño}{13}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Desarrollo}{14}{chapter.6}%
+\contentsline {chapter}{\numberline {7}Pruebas}{15}{chapter.7}%
+\contentsline {chapter}{\numberline {8}Conclusiones y trabajo a futuro}{16}{chapter.8}%
+\contentsline {chapter}{Anexos}{17}{chapter*.3}%
+\contentsline {section}{\numberline {8.1}Cronogramas}{17}{section.8.1}%

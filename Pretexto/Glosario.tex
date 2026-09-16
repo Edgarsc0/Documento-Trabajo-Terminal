@@ -4,18 +4,12 @@
 
 \chapter*{Glosario}
 
-% Añade "Glosario" a la Tabla de Contenido
 \addcontentsline{toc}{chapter}{Glosario}
 
 \begingroup
 \small
 
-% Separación vertical entre filas
 \renewcommand{\arraystretch}{1.15}
-
-% ============================
-%       TABLA DEL GLOSARIO
-% ============================
 
 \begin{longtable}[l]{
     @{}
@@ -24,116 +18,118 @@
     @{}
     }
 
-    % Cabecera de la primera página
     \toprule
     \textbf{Término} & \textbf{Definición}                                \\
     \midrule
     \endfirsthead
 
-    % Cabecera repetida en páginas siguientes
     \toprule
     \textbf{Término} & \textbf{Definición}                                \\
     \midrule
     \endhead
 
-    % Pie de páginas intermedias
     \midrule
     \multicolumn{2}{r}{\small\textit{Continúa en la siguiente página...}} \\
     \endfoot
 
-    % Pie de la última página
     \bottomrule
     \endlastfoot
 
-    % ============================
-    %       TÉRMINOS
-    % ============================
-
-    Generación Aumentada por Recuperación
+    Acción legal
                      &
-    Patrón arquitectónico utilizado para mejorar el rendimiento y la fiabilidad
-    de los modelos de lenguaje de gran escala mediante la incorporación de
-    información externa, pertinente y verificable durante el proceso de
-    generación de respuestas.
+    Movimiento permitido para un jugador en un estado específico del juego,
+    de acuerdo con las reglas declaradas en la descripción formal del dominio.
     \\
 
-    Inteligencia Artificial
+    Agente inteligente
                      &
-    Disciplina de las ciencias de la computación enfocada en el desarrollo de
-    algoritmos y modelos capaces de realizar tareas asociadas con capacidades
-    cognitivas humanas, como el aprendizaje a partir de datos, el razonamiento,
-    la toma de decisiones, la percepción y la comprensión o generación de
-    lenguaje natural.
+    Sistema computacional capaz de percibir un entorno, razonar sobre sus
+    posibles acciones y seleccionar una decisión con base en un objetivo,
+    recompensa o criterio de utilidad.
     \\
 
-    Interfaz de Programación de Aplicaciones
+    Árbol de juego
                      &
-    Conjunto de reglas, protocolos y especificaciones que define cómo diferentes
-    componentes de software pueden comunicarse e intercambiar información.
-    Funciona como una capa de intermediación que permite a una aplicación
-    solicitar datos o servicios de otra sin necesidad de conocer los detalles
-    internos de su implementación.
+    Representación de las posibles secuencias de estados y acciones de un
+    juego. Cada nodo representa un estado y cada arista representa una acción
+    que conduce a un nuevo estado.
     \\
 
-    Interfaz Web
+    Descripción de juego
                      &
-    Entorno gráfico e interactivo accesible mediante un navegador web que
-    permite la comunicación entre un usuario y los procesos subyacentes de un
-    sistema. Facilita el envío de peticiones, la introducción de datos, la
-    realización de consultas y la visualización de resultados.
+    Especificación externa que define jugadores, estado inicial, acciones
+    legales, transiciones, estados terminales y recompensas sin codificar
+    directamente esas reglas dentro del motor del agente.
     \\
 
-    Modelo de Lenguaje de Gran Escala
+    Estado
                      &
-    Modelo de inteligencia artificial basado generalmente en arquitecturas de
-    redes neuronales profundas, como los transformadores, y entrenado con grandes
-    volúmenes de datos. Puede comprender contexto, identificar relaciones
-    semánticas y generar texto coherente a partir de instrucciones o consultas.
+    Configuración completa de un juego en un instante determinado. Debe
+    contener la información necesaria para determinar acciones legales,
+    transiciones y condiciones terminales.
     \\
 
-    Pódcast
+    Estado terminal
                      &
-    Contenido de audio digital, generalmente organizado en episodios y centrado
-    en uno o varios temas, distribuido para su reproducción bajo demanda. Permite
-    al usuario escuchar el contenido en el momento y dispositivo de su elección.
+    Estado en el cual la partida termina y se asigna una recompensa o utilidad
+    a cada jugador.
     \\
 
-    Procesamiento del Lenguaje Natural
+    Función heurística
                      &
-    Subcampo de la inteligencia artificial y de la lingüística computacional
-    dedicado al desarrollo de métodos que permiten a las computadoras analizar,
-    comprender, interpretar y generar lenguaje humano en forma escrita o hablada.
+    Función de evaluación que estima qué tan favorable es un estado cuando no
+    resulta viable explorar el árbol de juego hasta estados terminales.
     \\
 
-    Prototipo
+    General Game Player
                      &
-    Modelo preliminar o versión funcional inicial de un producto, sistema o
-    aplicación que se construye para evaluar la viabilidad de un concepto,
-    comprobar sus funcionalidades principales y validar su flujo de trabajo antes
-    de realizar una implementación completa.
+    Agente capaz de recibir una descripción formal de un juego y jugarlo sin
+    que su motor de decisión contenga reglas específicas programadas para ese
+    dominio.
     \\
 
-    Sindicación Realmente Sencilla
+    Información perfecta
                      &
-    Formato estandarizado para la distribución automática de contenido web que
-    permite publicar y consultar actualizaciones de sitios, especialmente
-    noticias, blogs y otras fuentes que se actualizan con frecuencia.
+    Propiedad de los juegos en los que todos los jugadores conocen el estado
+    completo del juego y no existen reglas ocultas para alguno de ellos.
     \\
 
-    Síntesis de Voz
+    Intérprete
                      &
-    Tecnología que convierte texto escrito en habla artificial audible mediante
-    modelos computacionales capaces de producir señales de audio que reproducen
-    la pronunciación, entonación y ritmo propios del lenguaje hablado.
+    Componente encargado de analizar el archivo de reglas, validar su sintaxis
+    y semántica, y construir una representación interna que pueda consultar el
+    motor del agente.
     \\
 
-    Web Scraping
+    Lenguaje de descripción de juegos
                      &
-    Técnica computacional para la extracción automatizada de información desde
-    sitios web. Consiste en analizar la estructura de una página, identificar los
-    datos de interés y recopilarlos en un formato estructurado para su posterior
-    procesamiento, almacenamiento o análisis.
+    Lenguaje formal o de dominio específico utilizado para expresar reglas de
+    juegos de manera declarativa y separada del código del motor.
     \\
+
+    Motor de decisión
+                     &
+    Módulo encargado de explorar estados posibles y seleccionar una acción
+    mediante algoritmos generales de búsqueda o simulación.
+    \\
+
+    Poda alfa-beta
+                     &
+    Optimización del algoritmo Minimax que evita explorar ramas del árbol de
+    juego que no pueden cambiar la decisión final.
+    \\
+
+    Recompensa
+                     &
+    Valor asignado a un jugador, generalmente al alcanzar un estado terminal,
+    que indica el resultado o utilidad de la partida para ese jugador.
+    \\
+
+    Transición
+                     &
+    Cambio de un estado a otro como resultado de aplicar una acción legal.
+    \\
+
 \end{longtable}
 
 \endgroup
