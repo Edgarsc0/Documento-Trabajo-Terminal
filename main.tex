@@ -52,6 +52,7 @@
 
 % Gráficos y diagramas
 \usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, shapes.misc, fit, backgrounds, calc, shadows}
 
 % Control de objetos flotantes
 \usepackage{float}
@@ -79,6 +80,12 @@
 
 % Símbolos
 \usepackage{pifont}
+
+% Cuadros de texto y entornos para definiciones
+\usepackage[most]{tcolorbox}
+
+% Listados de código fuente
+\usepackage{listings}
 
 % DOI
 \usepackage{doi}
@@ -157,6 +164,97 @@
 % Símbolos de verificación
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
+
+% ============================================================
+%                 ENTORNOS PARA DEFINICIONES
+% ============================================================
+
+\newtcbtheorem[number within=chapter]{definicion}{Definici\'on}{
+    colback=gray!6,
+    colframe=gray!60,
+    coltitle=black,
+    colbacktitle=gray!22,
+    fonttitle=\bfseries,
+    sharp corners,
+    boxrule=0.8pt,
+    titlerule=0.5pt,
+    left=8pt,
+    right=8pt,
+    top=7pt,
+    bottom=7pt,
+    breakable
+}{def}
+
+% ============================================================
+%                 CONFIGURACIÓN DE LISTINGS (GDL)
+% ============================================================
+
+\definecolor{codegreen}{rgb}{0.13,0.55,0.13}
+\definecolor{codegray}{rgb}{0.45,0.45,0.45}
+\definecolor{codepurple}{rgb}{0.55,0,0.75}
+\definecolor{codeblue}{rgb}{0.05,0.25,0.75}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+
+\lstdefinelanguage{GDL}{
+    keywords={role, init, true, does, legal, next, terminal, goal, distinct, not, <=},
+    keywordstyle=\color{codeblue}\bfseries,
+    sensitive=true,
+    comment=[l]{;},
+    commentstyle=\color{codegreen}\itshape,
+    stringstyle=\color{codepurple},
+    morestring=[b]",
+}
+
+\lstdefinestyle{gdlstyle}{
+    language=GDL,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{codeblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=8pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{gray!35},
+    xleftmargin=14pt,
+    framexleftmargin=8pt,
+    extendedchars=true,
+    inputencoding=utf8,
+    literate=
+        {á}{{\'a}}1
+        {é}{{\'e}}1
+        {í}{{\'i}}1
+        {ó}{{\'o}}1
+        {ú}{{\'u}}1
+        {ñ}{{\~n}}1
+        {Á}{{\'A}}1
+        {É}{{\'E}}1
+        {Í}{{\'I}}1
+        {Ó}{{\'O}}1
+        {Ú}{{\'U}}1
+        {Ñ}{{\~N}}1
+        {¿}{{?`}}1
+        {¡}{{!`}}1
+}
+
+\lstset{style=gdlstyle}
+
+% Configuración de nombres en español para listings
+\renewcommand{\lstlistingname}{Código}
+\renewcommand{\lstlistlistingname}{Índice de códigos}
+\addto\captionsspanish{
+    \renewcommand{\lstlistingname}{Código}
+    \renewcommand{\lstlistlistingname}{Índice de códigos}
+}
 
 % ============================================================
 %                       BIBLIOGRAFÍA

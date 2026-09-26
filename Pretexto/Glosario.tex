@@ -9,12 +9,12 @@
 \begingroup
 \small
 
-\renewcommand{\arraystretch}{1.15}
+\renewcommand{\arraystretch}{1.18}
 
 \begin{longtable}[l]{
     @{}
     >{\raggedright\arraybackslash}p{4.2cm}
-    p{\dimexpr\textwidth-4.2cm\relax}
+    p{\dimexpr\textwidth-4.2cm-2\tabcolsep\relax}
     @{}
     }
 
@@ -37,97 +37,157 @@
 
     Acción legal
                      &
-    Movimiento permitido para un jugador en un estado específico del juego,
-    de acuerdo con las reglas declaradas en la descripción formal del dominio.
+    Movimiento que un jugador puede hacer en un estado concreto del juego, según las reglas de la descripción formal del dominio.
+    \\
+
+    Acción nula (\textit{noop})
+                     &
+    Acción pasiva (\textit{no-operation}) que ejecutan los jugadores que no tienen el turno. Sirve para representar la alternancia de turnos dentro de un modelo formal síncrono y con varios participantes.
     \\
 
     Agente inteligente
                      &
-    Sistema computacional capaz de percibir un entorno, razonar sobre sus
-    posibles acciones y seleccionar una decisión con base en un objetivo,
-    recompensa o criterio de utilidad.
+    Sistema que percibe un entorno, razona sobre sus posibles acciones y elige una de acuerdo con un objetivo, una recompensa o un criterio de utilidad.
     \\
 
     Árbol de juego
                      &
-    Representación de las posibles secuencias de estados y acciones de un
-    juego. Cada nodo representa un estado y cada arista representa una acción
-    que conduce a un nuevo estado.
+    Grafo acíclico con las secuencias posibles de estados y acciones de una partida. Cada nodo es una configuración y cada arista, una acción conjunta que lleva a un nuevo estado.
+    \\
+
+    Asunción de mundo cerrado (\textit{CWA})
+                     &
+    Principio de la programación lógica según el cual todo hecho o \textit{fluent} que no pueda deducirse como verdadero en el estado actual se considera falso.
+    \\
+
+    Conjunto de información de Kuhn
+                     &
+    Conjunto de estados que un participante no puede distinguir entre sí; reúne todas las configuraciones del entorno compatibles con lo que observa.
+    \\
+
+    Criterio de selección UCT
+                     &
+    Regla de selección de Monte Carlo Tree Search basada en la cota superior de confianza UCB1. Busca equilibrar la explotación de las jugadas que han funcionado con la exploración de las ramas poco visitadas.
     \\
 
     Descripción de juego
                      &
-    Especificación externa que define jugadores, estado inicial, acciones
-    legales, transiciones, estados terminales y recompensas sin codificar
-    directamente esas reglas dentro del motor del agente.
+    Especificación externa y declarativa que define los roles, el estado inicial, las acciones legales, las transiciones, los estados terminales y las recompensas, sin programar esas reglas dentro del motor del agente.
+    \\
+
+    Distancia geodésica
+                     &
+    Número mínimo de transiciones legales conjuntas necesarias para ir de una configuración origen a una configuración destino en el grafo de estados del juego.
     \\
 
     Estado
                      &
-    Configuración completa de un juego en un instante determinado. Debe
-    contener la información necesaria para determinar acciones legales,
-    transiciones y condiciones terminales.
+    Configuración completa del juego en un instante discreto. Formalmente, es el conjunto finito de \textit{fluents} atómicos verdaderos bajo la asunción de mundo cerrado.
     \\
 
     Estado terminal
                      &
-    Estado en el cual la partida termina y se asigna una recompensa o utilidad
-    a cada jugador.
+    Configuración en la que la partida termina y se asigna una recompensa numérica a cada participante.
+    \\
+
+    Explosión combinatoria
+                     &
+    Crecimiento exponencial del número de configuraciones y de nodos del árbol de búsqueda a medida que se profundiza, provocado por el factor de ramificación del dominio.
+    \\
+
+    Factor de ramificación
+                     &
+    Número promedio de acciones legales que salen de un nodo del árbol de búsqueda de un juego.
+    \\
+
+    Fluent
+                     &
+    Proposición lógica atómica cuyo valor de verdad cambia con el tiempo o con el estado. Representa hechos del entorno que pueden aparecer, mantenerse o desaparecer tras cada transición.
+    \\
+
+    Función de observación
+                     &
+    Función que asigna a cada estado del juego la observación que realmente recibe un jugador, es decir, la vista de la configuración real que le llega.
     \\
 
     Función heurística
                      &
-    Función de evaluación que estima qué tan favorable es un estado cuando no
-    resulta viable explorar el árbol de juego hasta estados terminales.
+    Función que estima qué tan bueno es un estado no terminal, o qué tan cerca está de la victoria, cuando la explosión combinatoria impide explorar el árbol hasta el final.
     \\
 
     General Game Player
                      &
-    Agente capaz de recibir una descripción formal de un juego y jugarlo sin
-    que su motor de decisión contenga reglas específicas programadas para ese
-    dominio.
+    Agente autónomo que recibe en tiempo de ejecución la descripción formal de un juego que no conocía y lo juega bien, sin ajustes manuales en su código para ese dominio.
     \\
 
     Información perfecta
                      &
-    Propiedad de los juegos en los que todos los jugadores conocen el estado
-    completo del juego y no existen reglas ocultas para alguno de ellos.
+    Propiedad de los juegos en los que la función de observación de cada participante es inyectiva, de modo que sus conjuntos de información tienen un solo elemento y no hay incertidumbre sobre el estado.
     \\
 
     Intérprete
                      &
-    Componente encargado de analizar el archivo de reglas, validar su sintaxis
-    y semántica, y construir una representación interna que pueda consultar el
-    motor del agente.
+    Módulo de software que analiza el archivo de reglas externo, valida su estructura y construye en memoria la representación del juego.
+    \\
+
+    Juego bien formado (\textit{well-formed game})
+                     &
+    Juego formal que cumple a la vez con la jugabilidad (no hay bloqueos o \textit{deadlocks}) y con la terminación garantizada en un número finito de jugadas.
     \\
 
     Lenguaje de descripción de juegos
                      &
-    Lenguaje formal o de dominio específico utilizado para expresar reglas de
-    juegos de manera declarativa y separada del código del motor.
+    Notación formal y declarativa de dominio específico (como GDL o Ludii) con la que se codifican la dinámica, la legalidad y las metas de un juego, separadas del algoritmo de decisión.
+    \\
+
+    Minimax
+                     &
+    Algoritmo clásico de decisión para juegos de dos jugadores y suma constante: elige la acción que maximiza la utilidad mínima que puede asegurar frente a un adversario racional.
     \\
 
     Motor de decisión
                      &
-    Módulo encargado de explorar estados posibles y seleccionar una acción
-    mediante algoritmos generales de búsqueda o simulación.
+    Núcleo del agente que explora las jugadas posibles y elige una acción mediante búsqueda en árboles, podas o simulación estocástica.
+    \\
+
+    Negación estratificada
+                     &
+    Propiedad de la semántica de Datalog que prohíbe la recursión cruzada con negación, lo que asegura que el modelo lógico de las reglas sea único, finito y decidible.
     \\
 
     Poda alfa-beta
                      &
-    Optimización del algoritmo Minimax que evita explorar ramas del árbol de
-    juego que no pueden cambiar la decisión final.
+    Optimización de Minimax que descarta subárboles completos cuya exploración no puede cambiar la decisión óptima en la raíz.
     \\
 
     Recompensa
                      &
-    Valor asignado a un jugador, generalmente al alcanzar un estado terminal,
-    que indica el resultado o utilidad de la partida para ese jugador.
+    Valor numérico que recibe cada rol al llegar a una configuración terminal y que mide qué tan bien le fue en la partida.
+    \\
+
+    Relación de indistinguibilidad
+                     &
+    Relación de equivalencia sobre los estados que vincula dos configuraciones cuando un participante recibe exactamente la misma observación de ambas.
+    \\
+
+    Relajación de efectos negativos (\textit{delete relaxation})
+                     &
+    Técnica heurística que ignora las condiciones que borran o invalidan \textit{fluents}, con lo que es posible calcular en tiempo polinomial cotas inferiores a los estados terminales.
+    \\
+
+    Retropropagación (\textit{backpropagation})
+                     &
+    Fase del ciclo de MCTS en la que la recompensa obtenida en una hoja o en una simulación se propaga hacia la raíz y actualiza las estadísticas de visitas y el valor medio.
+    \\
+
+    Simulación estocástica (\textit{rollout})
+                     &
+    Fase de MCTS en la que se juega una partida rápida, con movimientos elegidos al azar, desde un nodo expandido hasta una condición terminal.
     \\
 
     Transición
                      &
-    Cambio de un estado a otro como resultado de aplicar una acción legal.
+    Función que, a partir del estado actual y de un vector de acciones conjuntas, determina el único estado sucesor.
     \\
 
 \end{longtable}

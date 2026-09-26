@@ -2,419 +2,1006 @@
 
 \section{Inteligencia artificial en juegos}
 
-Los juegos han sido utilizados de manera recurrente como dominio de prueba para
-la inteligencia artificial porque ofrecen entornos con reglas explícitas,
-objetivos medibles y resultados verificables. Desde los primeros trabajos de
-Arthur Samuel sobre aprendizaje automático aplicado al juego de damas
-\cite{Samuel1959}, los juegos han permitido estudiar problemas de búsqueda,
-planeación, toma de decisiones, aprendizaje y evaluación de estrategias.
+Los juegos se han usado una y otra vez como banco de pruebas para la inteligencia artificial, porque tienen reglas explícitas, objetivos medibles y resultados que se pueden verificar. Desde los primeros trabajos de Arthur Samuel sobre aprendizaje automático en el juego de damas \cite{Samuel1959}, han servido para estudiar búsqueda, planeación, toma de decisiones, aprendizaje y evaluación de estrategias.
 
-Una razón por la cual los juegos son relevantes para la inteligencia artificial
-es que concentran, en un entorno controlado, problemas que también aparecen en
-dominios más amplios: seleccionar acciones bajo restricciones, anticipar
-consecuencias, competir con otros agentes, administrar recursos computacionales y
-tomar decisiones sin explorar por completo todas las posibilidades. En juegos
-simples, como Gato, es posible recorrer una parte importante del espacio de
-estados. En juegos más complejos, como Ajedrez, el número de estados y secuencias
-posibles crece de forma combinatoria, por lo que se requieren estrategias de
-búsqueda y evaluación.
+Hay otra razón por la que los juegos importan: en un entorno controlado reúnen problemas que aparecen también fuera de ellos. Hay que elegir acciones bajo restricciones, anticipar consecuencias, competir con otros agentes, repartir el cómputo y decidir sin haber explorado todas las posibilidades. En un juego pequeño como el Gato todavía se puede recorrer buena parte del espacio de estados; en el Ajedrez, el número de estados y de secuencias de jugadas crece de forma combinatoria y sin búsqueda ni evaluación no hay manera de avanzar.
 
-Históricamente, muchos sistemas exitosos de inteligencia artificial para juegos
-han sido motores especializados. Estos sistemas alcanzan alto desempeño porque
-incorporan conocimiento particular del dominio: reglas programadas para un juego,
-funciones de evaluación ajustadas a sus piezas o posiciones, representaciones
-hechas a la medida y optimizaciones diseñadas para un tablero específico. Aunque
-este enfoque puede producir agentes fuertes en un juego determinado, también
-genera arquitecturas rígidas. Un programa diseñado para jugar Ajedrez no puede,
-por ese solo hecho, jugar Damas, Go o Gato. La limitación no se encuentra en su
-capacidad de cálculo, sino en que su conocimiento está unido al juego para el que
-fue construido.
+Históricamente, muchos de los sistemas más exitosos han sido motores especializados. Rinden bien porque llevan dentro conocimiento del dominio: reglas programadas para un juego, funciones de evaluación ajustadas a sus piezas o posiciones, representaciones hechas a la medida y optimizaciones para un tablero concreto. Eso da agentes fuertes, pero rígidos. Un programa hecho para jugar Ajedrez no puede, sin más, jugar Damas, Go o Gato, y no por falta de capacidad de cálculo, sino porque lo que sabe está pegado al juego para el que se construyó.
 
-El problema anterior motiva el estudio de agentes capaces de operar sobre más de
-un juego sin reprogramar su motor. Esta línea de investigación se conoce como
-General Game Playing y busca mover parte del trabajo intelectual desde el
-programador hacia el agente: el sistema no debe depender de que el desarrollador
-codifique manualmente cada regla, sino de su capacidad para interpretar una
-descripción formal del juego y razonar sobre ella.
+De ahí nace el interés por agentes que jueguen más de un juego sin reprogramar el motor, y esa línea de investigación es \textit{General Game Playing}. Una parte del trabajo intelectual se mueve del programador al agente: ya no se espera que alguien codifique cada regla a mano, sino que el agente sepa leer la descripción formal del juego y razonar sobre ella.
 
 \section{Juegos de información perfecta}
 
-Un juego de información perfecta es aquel en el que todos los jugadores conocen
-el estado completo del juego cuando toman una decisión. No existen cartas ocultas,
-información privada, azar no observado ni reglas desconocidas para alguno de los
-participantes. Ejemplos clásicos de este tipo de juegos son Gato, Ajedrez y
-Damas. En ellos, el jugador puede ver la configuración actual y determinar qué
-acciones son legales de acuerdo con las reglas.
+En teoría de juegos y en inteligencia artificial \cite{Kuhn1953, OsborneRubinstein1994, RussellNorvig2010}, algo que separa a los juegos es cuánto ven los jugadores del entorno. Un juego es de información perfecta cuando todos conocen, en todo momento, el estado completo y exacto de la partida: sin piezas ocultas, cartas boca abajo, movimientos secretos ni reglas desconocidas. El Ajedrez, las Damas y el Gato son los ejemplos de siempre.
 
-Para estudiar estos juegos desde una perspectiva computacional conviene
-representarlos mediante componentes formales. De manera general, un juego puede
-describirse a partir de un conjunto de jugadores, un conjunto de estados, un
-estado inicial, acciones disponibles, una función de transición, estados
-terminales y valores de utilidad o recompensa. Esta formalización permite que el
-agente razone con conceptos abstractos en lugar de depender de nombres concretos
-como ``reina'', ``torre'', ``X'' u ``O''.
+Para formalizar esta idea con el modelo de juego ($\Gamma$) de la Sección \ref{sec:modelo_formal_juego}, consideremos un conjunto de jugadores $R = \{r_1, r_2, \dots, r_n\}$ y un conjunto de estados posibles $S$, donde cada estado $s \in S$ es la configuración completa y real del juego en un instante dado.
 
-En esta representación, un estado contiene toda la información necesaria para
-describir una situación del juego. Una acción legal es un movimiento permitido en
-ese estado. La transición indica cómo cambia el juego después de aplicar una
-acción. Un estado terminal representa el final de la partida y la utilidad indica
-qué tan favorable fue el resultado para cada jugador. Esta separación conceptual
-es fundamental para un General Game Player, porque permite que el motor de
-decisión opere sobre una interfaz común aun cuando cambien las reglas del juego.
+\subsection{Espacio de observaciones y función de observación (\texorpdfstring{$\mathcal{O}_i$}{Oi})}
+
+Conviene distinguir entre lo que el entorno es realmente y lo que cada jugador alcanza a percibir de él. Llamamos \textbf{estado real} ($s \in S$) a la configuración completa y verdadera del juego, que incluye todo lo que existe en ese instante: la posición de cada pieza, las cartas que cada participante tiene en la mano (también las que los demás no ven), el tiempo que queda en el reloj y a quién le toca mover. La \textbf{observación} ($o \in \Omega_i$), por su parte, es la información, parcial o total, que el jugador $r_i$ recibe de ese estado, es decir, lo que ve en su pantalla o sobre la mesa. El conjunto $\Omega_i$ reúne todas las observaciones posibles para ese jugador.
+
+La relación entre la realidad del juego y lo que ve el participante se modela con la \textbf{función de observación} \cite{Thielscher2010GDLII, RussellNorvig2010}:
+\begin{equation}
+    \mathcal{O}_i : S \to \Omega_i
+\end{equation}
+que toma el estado real $s \in S$ y devuelve la observación $\mathcal{O}_i(s) \in \Omega_i$ que ve el jugador $r_i$. Se puede pensar en $\mathcal{O}_i$ como un filtro colocado desde el punto de vista del jugador: aunque el juego esté en la configuración completa $s$, solo pasa lo que las reglas le permiten ver. En un juego de cartas, por ejemplo, el filtro borra las cartas del adversario y deja las propias y las comunitarias.
+
+\subsection{Relación de indistinguibilidad (\texorpdfstring{$\sim_i$}{sim i})}
+
+A partir de la función de observación se puede establecer con precisión cuándo dos situaciones distintas del juego resultan indiscernibles para un participante \cite{OsborneRubinstein1994}.
+
+\begin{definicion}{Relación de indistinguibilidad}{indistinguibilidad}
+Dado un conjunto de estados $S$, un espacio de observaciones $\Omega_i$ y una función de observación $\mathcal{O}_i : S \to \Omega_i$ \cite{Kuhn1953, OsborneRubinstein1994, Thielscher2010GDLII}, la \textbf{relación de indistinguibilidad} $\sim_i \; \subseteq S \times S$ para el jugador $r_i \in R$ se define como:
+\begin{equation}
+    s \sim_i s' \iff \mathcal{O}_i(s) = \mathcal{O}_i(s')
+\end{equation}
+Dos estados $s, s' \in S$ son indistinguibles para el jugador $r_i$ si y solo si producen exactamente la misma proyección perceptual en su codominio de observaciones.
+\end{definicion}
+
+Que dos estados $s$ y $s'$ sean indistinguibles para un jugador quiere decir que lo que los diferencia queda fuera de su campo de visión. Piénsese en un juego de cartas: en el estado $s$ el adversario tiene un As oculto y en $s'$ tiene un Rey oculto. El adversario los distingue sin problema, porque ve su propia mano. Para el jugador $r_i$, en cambio, la carta del rival está boca abajo y recibe exactamente la misma vista en ambos casos, $\mathcal{O}_i(s) = \mathcal{O}_i(s')$, de modo que no puede saber en cuál de las dos situaciones se encuentra.
+
+\subsection{La indistinguibilidad como relación de equivalencia}
+
+Para agrupar los estados que un jugador confunde entre sí hay que demostrar que $\sim_i$ es una relación de equivalencia sobre el espacio de estados \cite{OsborneRubinstein1994}.
+
+\vspace{0.5em}
+\noindent\textbf{Proposición 3.1.} \textit{Para todo jugador $r_i \in R$, la relación binaria de indistinguibilidad $\sim_i$ es una relación de equivalencia sobre el conjunto de estados $S$.}
+
+\vspace{0.5em}
+\noindent\textbf{Demostración (véase \cite{OsborneRubinstein1994}).} Se debe verificar que $\sim_i$ satisface las tres propiedades fundamentales:
+\begin{enumerate}
+    \item \textbf{Reflexividad ($\forall s \in S : s \sim_i s$):}
+    Sea $s \in S$ un estado arbitrario. La observación que produce dicho estado es idéntica a sí misma:
+    \begin{equation*}
+        \mathcal{O}_i(s) = \mathcal{O}_i(s)
+    \end{equation*}
+    Por tanto, $s \sim_i s$ para todo $s \in S$.
+    
+Un estado siempre produce la misma vista que él mismo, así que ningún jugador puede confundirlo consigo.
+    
+    \item \textbf{Simetría ($\forall s, s' \in S : s \sim_i s' \implies s' \sim_i s$):}
+    Sean $s, s' \in S$ tales que $s \sim_i s'$. Por definición, ambos estados producen la misma observación: $\mathcal{O}_i(s) = \mathcal{O}_i(s')$. En virtud de la simetría de la igualdad matemática, se tiene:
+    \begin{equation*}
+        \mathcal{O}_i(s') = \mathcal{O}_i(s)
+    \end{equation*}
+    lo que implica que $s' \sim_i s$.
+    
+La confusión es recíproca: si la vista de $s$ no permite descartar que el juego esté en $s'$, la vista de $s'$ tampoco permite descartar que esté en $s$.
+    
+    \item \textbf{Transitividad ($\forall s, s', s'' \in S : (s \sim_i s' \land s' \sim_i s'') \implies s \sim_i s''$):}
+    Sean $s, s', s'' \in S$ tales que $s \sim_i s'$ y $s' \sim_i s''$. Esto significa que:
+    \begin{equation*}
+        \mathcal{O}_i(s) = \mathcal{O}_i(s') \quad \text{y} \quad \mathcal{O}_i(s') = \mathcal{O}_i(s'')
+    \end{equation*}
+    Por la propiedad transitiva de la igualdad matemática:
+    \begin{equation*}
+        \mathcal{O}_i(s) = \mathcal{O}_i(s'')
+    \end{equation*}
+    lo cual demuestra que $s \sim_i s''$.
+    
+Si $s$ se ve igual que $s'$ y $s'$ se ve igual que $s''$, los tres estados se ven idénticos para el jugador, y por tanto $s$ y $s''$ son indistinguibles.
+\end{enumerate}
+Al satisfacerse la reflexividad, simetría y transitividad, queda formalmente demostrado que $\sim_i$ es una relación de equivalencia sobre $S$. \hfill $\blacksquare$
+\vspace{0.8em}
+
+\subsection{Conjuntos de información de Kuhn (\texorpdfstring{$I_i(s)$}{Ii(s)})}
+
+Toda relación de equivalencia clasifica los elementos de un conjunto en bloques disjuntos, llamados clases de equivalencia:
+\begin{equation}
+    \mathcal{I}_i = S / \sim_i = \{ [s]_{\sim_i} \mid s \in S \}
+\end{equation}
+En la teoría matemática de juegos formulada originalmente por Kuhn \cite{Kuhn1953} y desarrollada en textos canónicos de teoría de juegos \cite{OsborneRubinstein1994}, a cada clase de equivalencia $[s]_{\sim_i}$ se le llama \textbf{conjunto de información} del jugador $r_i$ ante el estado $s$, denotado formalmente como $I_i(s)$.
+
+\begin{definicion}{Conjunto de información de Kuhn}{conjunto_informacion_kuhn}
+Para un jugador $r_i \in R$ y un estado real del juego $s \in S$, el \textbf{conjunto de información} $I_i(s)$ se define formalmente, siguiendo la formulación canónica de juegos en forma extensiva de Kuhn \cite{Kuhn1953, OsborneRubinstein1994}, como la clase de equivalencia inducida por la relación de indistinguibilidad $\sim_i$:
+\begin{equation}
+    I_i(s) = [s]_{\sim_i} = \{ s' \in S \mid s \sim_i s' \} = \{ s' \in S \mid \mathcal{O}_i(s') = \mathcal{O}_i(s) \}
+\end{equation}
+$I_i(s)$ reúne la totalidad de estados posibles del juego que resultan compatibles con la observación perceptible por el participante en dicho instante.
+\end{definicion}
+
+$I_i(s)$ expresa la duda del participante. Cuando el juego está en el estado real $s$, el jugador no puede afirmar con certeza que ``el juego está en $s$''; lo único que puede sostener es que ``el juego está en alguno de los estados de $I_i(s)$''.
+
+En los juegos de información imperfecta, la función de observación $\mathcal{O}_i$ \textbf{no es inyectiva}: existen al menos dos estados distintos que producen la misma observación ($\exists s, s' \in S, s \neq s' : \mathcal{O}_i(s) = \mathcal{O}_i(s')$). La preimagen de esa observación contiene entonces varios estados y forma un conjunto de información no trivial ($|I_i(s)| > 1$). El participante enfrenta una incertidumbre real, porque no puede saber en cuál de ellos está y debe apoyarse en distribuciones de probabilidad o en creencias para decidir su movimiento.
+
+En los juegos de información perfecta ocurre lo contrario: $\mathcal{O}_i$ es \textbf{estrictamente inyectiva}, y cada estado real produce una observación única que lo identifica sin ambigüedad:
+\begin{equation}
+    \forall s, s' \in S : \quad \mathcal{O}_i(s) = \mathcal{O}_i(s') \implies s = s'
+\end{equation}
+Al ser un mapeo uno a uno, ningún par de estados distintos coincide en su imagen, y la preimagen de cualquier observación es forzosamente un conjunto unitario (\textit{singleton}):
+\begin{equation}
+    \mathcal{O}_i^{-1}(\mathcal{O}_i(s)) = I_i(s) = \{s\}
+\end{equation}
+No queda duda ni ambigüedad perceptual: para cada jugador, el abanico de posibilidades se reduce a la realidad misma.
+
+\begin{definicion}{Juego de información perfecta}{info_perfecta}
+Un juego formal con conjunto de jugadores $R$ y conjunto de estados $S$ es de \textbf{información perfecta} \cite{Kuhn1953, OsborneRubinstein1994, Thielscher2010GDLII} si y solo si, para todo jugador $r_i \in R$ y para todo estado $s \in S$, su conjunto de información contiene únicamente el estado real:
+\begin{equation*}
+    \forall r_i \in R, \quad \forall s \in S : \quad I_i(s) = \{s\}
+\end{equation*}
+En otras palabras, el conjunto de información de cada participante tiene siempre un solo elemento (\textit{singleton}), y por eso nadie duda nunca de cuál es la configuración exacta del juego.
+\end{definicion}
+
+\vspace{0.5em}
+\noindent\textbf{Proposición 3.2 (Equivalencia con la inyectividad de la función de observación).} \textit{Un juego formal con espacio de estados $S$ y conjunto de participantes $R$ es de información perfecta si y solo si, para todo jugador $r_i \in R$, su función de observación $\mathcal{O}_i : S \to \Omega_i$ es estrictamente inyectiva.}
+
+\vspace{0.5em}
+\noindent\textbf{Demostración.} Se demuestra la doble implicación ($\iff$):
+\begin{enumerate}
+    \item \textbf{Necesidad ($\implies$):} Supóngase que el juego es de información perfecta. Por la Definición \ref{def:info_perfecta}, para todo $s \in S$ y todo $r_i \in R$, el conjunto de información colapsa a un conjunto unitario:
+    \begin{equation*}
+        I_i(s) = [s]_{\sim_i} = \{ s' \in S \mid \mathcal{O}_i(s') = \mathcal{O}_i(s) \} = \{s\}
+    \end{equation*}
+    Sean $s_1, s_2 \in S$ dos estados arbitrarios tales que producen la misma observación: $\mathcal{O}_i(s_1) = \mathcal{O}_i(s_2)$. Por la definición de la clase de equivalencia, esto implica directamente que $s_1 \in I_i(s_2)$. Dado que el juego es de información perfecta, se tiene que $I_i(s_2) = \{s_2\}$, de lo cual se deduce de manera unívoca que:
+    \begin{equation*}
+        s_1 = s_2
+    \end{equation*}
+    Por tanto, $\mathcal{O}_i(s_1) = \mathcal{O}_i(s_2) \implies s_1 = s_2$, demostrando que $\mathcal{O}_i$ satisface formalmente la definición de una función inyectiva.
+    
+    \item \textbf{Suficiencia ($\impliedby$):} Supóngase que la función de observación $\mathcal{O}_i : S \to \Omega_i$ es estrictamente inyectiva. Sea $s \in S$ un estado arbitrario y considérese su respectivo conjunto de información:
+    \begin{equation*}
+        I_i(s) = \{ s' \in S \mid \mathcal{O}_i(s') = \mathcal{O}_i(s) \}
+    \end{equation*}
+    Por reflexividad de la igualdad, siempre se cumple que $s \in I_i(s)$. Sea ahora cualquier estado $s' \in I_i(s)$. Por definición de pertenencia, se tiene forzosamente que $\mathcal{O}_i(s') = \mathcal{O}_i(s)$. Puesto que la función $\mathcal{O}_i$ es inyectiva por hipótesis, la igualdad de imágenes exige estrictamente que:
+    \begin{equation*}
+        s' = s
+    \end{equation*}
+    En consecuencia, no puede existir ningún elemento en $I_i(s)$ distinto de $s$, concluyéndose que:
+    \begin{equation*}
+        I_i(s) = \{s\}
+    \end{equation*}
+    Al verificarse esta condición para todo jugador $r_i \in R$ y para todo estado $s \in S$, el juego es de información perfecta.
+\end{enumerate}
+Queda formalmente demostrada la equivalencia lógica. \hfill $\blacksquare$
+\vspace{0.8em}
+
+Esta equivalencia deja ver dos situaciones muy distintas para un agente inteligente. Si el juego es de información imperfecta ($\mathcal{O}_i$ no inyectiva), hay al menos dos estados $s \neq s'$ con la misma vista ($\mathcal{O}_i(s) = \mathcal{O}_i(s') = o$). Como el mapeo es de muchos a uno, la preimagen o fibra $\mathcal{O}_i^{-1}(o) = I_i(s)$ agrupa varias configuraciones ($|I_i(s)| > 1$). Esa es la raíz matemática de la incertidumbre de Kuhn: el jugador recibe la observación $o$, pero no tiene manera determinista de invertir la función y decidir si el estado verdadero es $s$ o $s'$.
+
+Si, en cambio, el juego es de información perfecta ($\mathcal{O}_i$ estrictamente inyectiva), ningún par de estados distintos comparte imagen y la preimagen de cualquier observación es siempre un conjunto unitario: $\mathcal{O}_i^{-1}(\mathcal{O}_i(s)) = I_i(s) = \{s\}$. El participante puede entonces invertir la función de observación y reconstruir el estado exacto del mundo:
+\begin{equation}
+    s = \mathcal{O}_i^{-1}(o)
+\end{equation}
+sin asimetrías perceptuales ni incertidumbre táctica sobre el entorno.
+
+\subsection{Ejemplos comparativos}
+
+Dos ejemplos ayudan a ver la diferencia.
+
+En el Gato ($R = \{\text{x}, \text{o}\}$), que es un juego de información perfecta, el tablero de $3 \times 3$ está completamente a la vista de ambos jugadores. Si el estado real es $s$ (por ejemplo, una ficha en el centro), la función de observación de cada participante devuelve exactamente ese tablero: $\mathcal{O}_{\text{x}}(s) = s$ y $\mathcal{O}_{\text{o}}(s) = s$. Sus conjuntos de información son, por tanto,
+\begin{equation}
+    I_{\text{x}}(s) = \{s\}, \quad I_{\text{o}}(s) = \{s\}
+\end{equation}
+Ninguno duda de qué casillas están marcadas; los dos ven toda la realidad del juego a través de un mapeo inyectivo directo. Lo mismo vale para el Ajedrez.
+
+La Batalla Naval, en cambio, es de información imperfecta. Supongamos que el jugador 1 coloca su barco en la coordenada $(1,1)$ (estado $s_A$) o en la $(1,2)$ (estado $s_B$). Él sabe dónde puso su nave, así que distingue las dos situaciones: $I_1(s_A) = \{s_A\}$ e $I_1(s_B) = \{s_B\}$. El jugador 2, sin embargo, tiene la cuadrícula rival cubierta por niebla, y para él ambos tableros son idénticos: $\mathcal{O}_2(s_A) = \mathcal{O}_2(s_B) = o$. La función no es inyectiva ($s_A \sim_2 s_B$) y resulta
+\begin{equation}
+    I_2(s_A) = I_2(s_B) = \{s_A, s_B\}
+\end{equation}
+El conjunto de información del jugador 2 tiene dos estados ($|I_2| = 2 > 1$). No sabe si el barco enemigo está en $(1,1)$ o en $(1,2)$ y se ve obligado a adivinar o a estimar probabilidades.
+
+La Figura \ref{fig:kuhn_information_sets} ilustra esquemáticamente esta distinción a través de la representación canónica en teoría de conjuntos de funciones inyectivas y no inyectivas.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\footnotesize,
+    setcapsule/.style={draw=blue!70!black, fill=blue!4, rounded corners=16pt, line width=0.8pt, minimum width=2.2cm, minimum height=3.6cm},
+    codcapsule/.style={draw=teal!70!black, fill=teal!4, rounded corners=16pt, line width=0.8pt, minimum width=2.2cm, minimum height=3.6cm},
+    elem/.style={circle, draw=blue!80!black, fill=blue!25, inner sep=2pt, font=\scriptsize\bfseries},
+    obselem/.style={circle, draw=teal!80!black, fill=teal!25, inner sep=2pt, font=\scriptsize\bfseries},
+    maparrow/.style={-{Stealth[scale=0.85]}, thick, draw=purple!75!black},
+    infobox/.style={draw=red!70!black, dashed, rounded corners=6pt, fill=red!7, line width=0.7pt, inner sep=3pt},
+    singlebox/.style={draw=green!60!black, rounded corners=4pt, fill=green!8, line width=0.6pt, inner sep=2pt}
+]
+
+% ==================== (a) INFORMACIÓN IMPERFECTA (NO INYECTIVA) ====================
+\begin{scope}[xshift=0cm]
+% Dominio S
+\node[setcapsule] (domA) at (0, 1.6) {};
+\node[anchor=north, font=\scriptsize\bfseries\color{blue!80!black}] at (domA.north) {Dominio $S$};
+
+\node[elem] (sa1) at (0, 2.5) {$s_A$};
+\node[elem] (sa2) at (0, 1.5) {$s_B$};
+\node[elem] (sa3) at (0, 0.5) {$s_C$};
+
+\node[infobox, fit=(sa1) (sa2), label={[font=\tiny\bfseries\color{red!80!black}]left:$I_2 = \{s_A, s_B\}$}] (kuhn_a) {};
+\node[singlebox, fit=(sa3), label={[font=\tiny\bfseries\color{green!60!black}]left:$\{s_C\}$}] (kuhn_a3) {};
+
+% Codominio Omega
+\node[codcapsule] (codA) at (3.3, 1.6) {};
+\node[anchor=north, font=\scriptsize\bfseries\color{teal!80!black}] at (codA.north) {Codominio $\Omega_2$};
+
+\node[obselem] (oa1) at (3.3, 2.0) {$o_1$};
+\node[font=\tiny, right=0.08cm of oa1] {niebla};
+\node[obselem] (oa2) at (3.3, 0.5) {$o_2$};
+
+% Mapeos
+\draw[maparrow] (sa1) -- (oa1);
+\draw[maparrow] (sa2) -- (oa1);
+\draw[maparrow] (sa3) -- (oa2);
+
+% Flecha superior de función
+\draw[-{Stealth[scale=0.9]}, thick, draw=purple!80!black] (0.8, 3.6) -- node[above, font=\footnotesize\bfseries] {$\mathcal{O}_2$} (2.5, 3.6);
+
+\node[font=\scriptsize\color{red!80!black}, align=center] (lblA) at (1.65, -0.6) {$\mathcal{O}_2(s_A) = \mathcal{O}_2(s_B) = o_1$\\
+\textbf{Función no inyectiva} $\implies |I_2| > 1$};
+
+\coordinate (topA) at (1.65, 3.9);
+\node[draw=gray!40, rounded corners=6pt, line width=0.6pt, fit=(domA) (codA) (lblA) (topA), inner sep=5pt, label={[font=\footnotesize\bfseries\color{black}]above:(a) Información imperfecta: función no inyectiva}] (panel_a) {};
+\end{scope}
+
+% ==================== (b) INFORMACIÓN PERFECTA (ESTRICTAMENTE INYECTIVA) ====================
+\begin{scope}[xshift=7.4cm]
+% Dominio S
+\node[setcapsule] (domB) at (0, 1.6) {};
+\node[anchor=north, font=\scriptsize\bfseries\color{blue!80!black}] at (domB.north) {Dominio $S$};
+
+\node[elem] (sb1) at (0, 2.5) {$s_1$};
+\node[elem] (sb2) at (0, 1.5) {$s_2$};
+\node[elem] (sb3) at (0, 0.5) {$s_3$};
+
+\node[singlebox, fit=(sb1), label={[font=\tiny\bfseries\color{green!60!black}]left:$\{s_1\}$}] (kuhn_b1) {};
+\node[singlebox, fit=(sb2), label={[font=\tiny\bfseries\color{green!60!black}]left:$\{s_2\}$}] (kuhn_b2) {};
+\node[singlebox, fit=(sb3), label={[font=\tiny\bfseries\color{green!60!black}]left:$\{s_3\}$}] (kuhn_b3) {};
+
+% Codominio Omega
+\node[codcapsule] (codB) at (3.3, 1.6) {};
+\node[anchor=north, font=\scriptsize\bfseries\color{teal!80!black}] at (codB.north) {Codominio $\Omega$};
+
+\node[obselem] (ob1) at (3.3, 2.5) {$o_1$};
+\node[obselem] (ob2) at (3.3, 1.5) {$o_2$};
+\node[obselem] (ob3) at (3.3, 0.5) {$o_3$};
+
+% Mapeos inyectivos (uno a uno)
+\draw[maparrow] (sb1) -- (ob1);
+\draw[maparrow] (sb2) -- (ob2);
+\draw[maparrow] (sb3) -- (ob3);
+
+% Flecha superior de función
+\draw[-{Stealth[scale=0.9]}, thick, draw=purple!80!black] (0.8, 3.6) -- node[above, font=\footnotesize\bfseries] {$\mathcal{O}$} (2.5, 3.6);
+
+\node[font=\scriptsize\color{green!50!black}, align=center] (lblB) at (1.65, -0.6) {$\mathcal{O}(s) = \mathcal{O}(s') \implies s = s'$\\
+\textbf{Función inyectiva} $\implies I(s) = \{s\}$};
+
+\coordinate (topB) at (1.65, 3.9);
+\node[draw=gray!40, rounded corners=6pt, line width=0.6pt, fit=(domB) (codB) (lblB) (topB), inner sep=5pt, label={[font=\footnotesize\bfseries\color{black}]above:(b) Información perfecta: función inyectiva (uno a uno)}] (panel_b) {};
+\end{scope}
+
+\end{tikzpicture}
+\caption{Representación en teoría de conjuntos de la función de observación $\mathcal{O}_i : S \to \Omega_i$. En un entorno de información imperfecta (a), la función no es inyectiva y colapsa múltiples estados en una misma observación ($s_A \sim_2 s_B$), induciendo incertidumbre con $|I_2| > 1$. En un juego de información perfecta (b), la función es estrictamente inyectiva (mapeo uno a uno), garantizando que la preimagen de cada observación sea un conjunto unitario ($I(s) = \{s\}$) y eliminando toda incertidumbre sobre la configuración real del juego.}
+\label{fig:kuhn_information_sets}
+\end{figure}
+
+\subsection{Implicación para el modelo formal \texorpdfstring{$\Gamma$}{Gamma}}
+
+Que un juego cumpla $I_i(s) = \{s\}$ para todos los participantes simplifica bastante el modelo matemático $\Gamma$ de la Sección \ref{sec:modelo_formal_juego}. Por un lado, la función de legalidad $L_i(s)$ y la de utilidad $G_i(s)$ toman directamente como argumento el estado real $s \in S$, de modo que el motor no necesita estimar variables ocultas ni ponderar probabilidades de observación: el jugador siempre conoce el estado exacto. Por otro, en la representación lógica con fluents (Subsección \ref{subsec:fluents}) todos los hechos verdaderos están a la vista de todos, es decir, no hay fluents privados ($\mathcal{F}_{\text{privados}} = \emptyset$) y cualquier proposición verdadera en el estado actual es de conocimiento común.
+
+Además, la búsqueda se vuelve determinista y sin incertidumbre. Los algoritmos de decisión del agente (Minimax, poda alfa-beta o Monte Carlo Tree Search) pueden simular directamente transiciones de un estado $s$ a su sucesor $s' = T(s, \mathbf{a})$, y así anticipar las consecuencias de cada jugada explorando un árbol de estados determinista, sin tener que mantener árboles de conjuntos de información ni modelos parcialmente observables (POMDPs).
 
 \section{General Game Playing}
 
-Un General Game Player (GGP) es un agente que recibe una descripción formal de un
-juego y debe jugarlo sin intervención humana ni conocimiento específico
-preprogramado para ese dominio. Genesereth, Love y Pell definen el área como el
-estudio de sistemas capaces de aceptar la descripción formal de un juego y jugar
-efectivamente sin depender de algoritmos diseñados de antemano para juegos
-particulares \cite{Genesereth2005GGP}.
+Un General Game Player (GGP) es un agente que recibe la descripción formal de un juego y debe jugarlo sin ayuda humana ni conocimiento específico programado de antemano para ese dominio. Genesereth, Love y Pell definen el área como el estudio de sistemas capaces de aceptar la descripción formal de un juego y jugarlo bien sin depender de algoritmos diseñados para juegos particulares \cite{Genesereth2005GGP}.
 
-La diferencia principal entre un motor especializado y un General Game Player se
-encuentra en la ubicación del conocimiento del juego. En un motor especializado,
-las reglas y heurísticas suelen estar dentro del código fuente. En un GGP, las
-reglas se proporcionan como entrada externa. El agente debe interpretarlas,
-construir una representación interna y usar un proceso general de decisión. Por
-ello, la generalidad no significa únicamente que el sistema pueda ejecutar dos
-juegos, sino que el mismo núcleo algorítmico pueda operar al cambiar la
-descripción del juego.
+Lo que separa a un motor especializado de un General Game Player es dónde vive el conocimiento del juego. En el motor especializado, las reglas y heurísticas suelen estar dentro del código fuente. En un GGP, las reglas llegan como entrada externa, y el agente debe interpretarlas, construir su propia representación interna y aplicar un proceso de decisión general. Por eso la generalidad no consiste solo en poder ejecutar dos juegos: el mismo núcleo algorítmico tiene que funcionar cuando cambia la descripción del juego.
 
-Este enfoque tiene una implicación directa para el presente Trabajo Terminal: el
-objetivo no consiste en construir un motor competitivo de Ajedrez comparable con
-sistemas especializados, sino en diseñar una arquitectura desacoplada. La
-validación debe demostrar que el sistema puede cargar reglas externas, generar
-movimientos legales, reconocer estados terminales y seleccionar jugadas bajo un
-criterio general de búsqueda. La prueba de generalidad se encuentra en cambiar
-el archivo de reglas sin modificar el motor del agente.
+De aquí se sigue algo para este Trabajo Terminal: no queremos un motor de Ajedrez que rivalice con los sistemas especializados, sino una arquitectura desacoplada. Lo que hay que demostrar es que el sistema carga reglas externas, genera movimientos legales, reconoce estados terminales y escoge jugadas con un criterio general de búsqueda. Y la prueba de que es general está en cambiar el archivo de reglas sin tocar el motor.
 
 \section{Modelo formal de juego}
+\label{sec:modelo_formal_juego}
 
-El modelo formal de juego en GGP puede entenderse como una máquina de estados. De
-acuerdo con la descripción general presentada por Genesereth, Love y Pell, un
-juego finito puede modelarse mediante estados, roles, acciones legales, función
-de actualización, estado inicial, condiciones terminales y valores de objetivo
-\cite{Genesereth2005GGP}. Esta visión permite que el juego sea procesado por una
-computadora como un sistema dinámico.
+En la literatura de \textit{General Game Playing} \cite{Genesereth2005GGP, GeneserethThielscher2014, Love2008GDL}, un juego se formaliza como un sistema de transición de estados determinista, síncrono y multipartito. Visto así, una partida es la trayectoria que recorre un autómata finito por su espacio de configuraciones, impulsada por las decisiones simultáneas de varios agentes racionales.
 
-El conjunto de estados representa todas las configuraciones posibles. Los roles
-corresponden a los jugadores. Para cada estado, las reglas determinan qué
-acciones puede ejecutar cada rol. La función de transición toma el estado actual
-y las acciones realizadas para producir un nuevo estado. El juego continúa hasta
-alcanzar un estado terminal. En ese punto, se asigna una recompensa a cada
-jugador.
-
-Para que esta abstracción sea útil en un sistema computacional, el motor del
-agente debe poder realizar consultas generales. Por ejemplo, necesita obtener el
-estado inicial, listar acciones legales, aplicar una acción, verificar si un
-estado es terminal y consultar la recompensa. Estas operaciones pueden expresarse
-conceptualmente como:
-
+\begin{definicion}{Juego en General Game Playing}{juego_ggp}
+Un juego formal $\Gamma$ es un sistema de transición de estados finito, determinista, síncrono y de información perfecta caracterizado por una tupla de ocho componentes \cite{Genesereth2005GGP, Love2008GDL, GeneserethThielscher2014}:
+\begin{equation*}
+    \Gamma = \langle R, S, s_0, \{A_i\}_{i=1}^n, \{L_i\}_{i=1}^n, T, F, \{G_i\}_{i=1}^n \rangle
+\end{equation*}
+donde:
 \begin{itemize}
-    \item obtener el estado inicial del juego;
-    \item consultar las acciones legales para un jugador en un estado;
-    \item aplicar una acción y producir un estado sucesor;
-    \item determinar si un estado es terminal;
-    \item calcular la utilidad o recompensa para cada jugador.
+    \item $R = \{r_1, r_2, \dots, r_n\}$ es el conjunto finito de roles o participantes ($|R| = n \ge 1$).
+    \item $S$ es el conjunto finito y no vacío de estados posibles del entorno.
+    \item $s_0 \in S$ es el estado inicial distinguido en el instante $t = 0$.
+    \item $A_i$ es el catálogo finito de acciones primitivas del participante $r_i$, conformando el espacio conjunto $\mathbf{A} = \prod_{i=1}^n A_i$.
+    \item $L_i : S \to \mathcal{P}(A_i)$ es la función de legalidad que asigna a cada estado las acciones permitidas para el participante $r_i$.
+    \item $T : S \times \mathbf{A} \to S$ es la función de transición dinámica que mapea el estado actual y un vector de acciones conjuntas a un único estado sucesor.
+    \item $F \subseteq S$ es el subconjunto de estados terminales.
+    \item $G_i : S \to [0, 100]$ es la función de utilidad o meta que asigna la recompensa numérica alcanzada por el rol $r_i$.
 \end{itemize}
+\end{definicion}
 
-La importancia de esta interfaz es que el motor de búsqueda no necesita conocer
-las reglas concretas del dominio. En lugar de preguntar si un caballo puede
-moverse en forma de ``L'' o si una casilla de Gato está vacía, pregunta qué
-acciones son legales desde el estado actual. El conocimiento específico debe
-estar en la descripción externa y en la representación interna derivada de ella,
-no en el algoritmo de decisión.
+A continuación se detalla la semántica y formalización de cada uno de los componentes de la tupla.
 
-\section{Lenguaje de descripción de juegos}
+\subsection{Conjunto de roles (\texorpdfstring{$R$}{R})}
 
-Un lenguaje de descripción de juegos permite expresar formalmente las reglas de
-un juego para que puedan ser interpretadas por un agente. En General Game
-Playing, el lenguaje clásico es Game Description Language (GDL). GDL fue
-diseñado para describir juegos discretos mediante reglas lógicas, de modo que un
-agente pueda conocer el estado inicial, las acciones legales, las transiciones,
-las condiciones terminales y las recompensas \cite{Love2008GDL}.
+El conjunto $R = \{r_1, r_2, \dots, r_n\}$ es finito y no vacío, con cardinalidad $|R| = n \ge 1$, y sus elementos son los participantes del juego. En \textit{General Game Playing}, esos elementos no tienen para el motor de razonamiento ningún significado previo (``humano'', ``blancas'' o ``máquina''); son identificadores abstractos. En el Gato, por ejemplo, $R = \{\text{x}, \text{o}\}$, y en el Ajedrez, $R = \{\text{blancas}, \text{negras}\}$. En GDL cada participante se declara con el predicado \texttt{(role r)}.
 
-GDL utiliza predicados especiales para representar los componentes del juego.
-Entre los más importantes se encuentran:
+\subsection{Espacio de estados (\texorpdfstring{$S$}{S}) y semántica de fluents}
+\label{subsec:fluents}
 
-\begin{itemize}
-    \item \texttt{role}, para declarar jugadores o roles;
-    \item \texttt{init}, para indicar hechos verdaderos en el estado inicial;
-    \item \texttt{true}, para consultar hechos del estado actual;
-    \item \texttt{legal}, para definir acciones permitidas;
-    \item \texttt{does}, para representar acciones ejecutadas;
-    \item \texttt{next}, para describir hechos del estado siguiente;
-    \item \texttt{terminal}, para establecer condiciones de fin de juego;
-    \item \texttt{goal}, para asignar valores de recompensa.
-\end{itemize}
+El espacio de estados $S = \{s_1, s_2, \dots, s_k\}$ es un conjunto finito y no vacío con todas las configuraciones admisibles del sistema. En lugar de tratar cada estado como un identificador opaco e indivisible, en \textit{General Game Playing} se descompone en proposiciones estructuradas, a partir del concepto de \textit{fluent} \cite{McCarthyHayes1969, GeneserethThielscher2014}.
 
-Esta forma de representación muestra que GDL no funciona como un archivo simple
-de configuración. No basta con indicar el tamaño del tablero o el número de
-jugadores. El lenguaje debe expresar relaciones, condiciones, variables y reglas
-de inferencia. Por ejemplo, una acción puede ser legal solo si una casilla está
-vacía y si corresponde el turno del jugador. Esta capacidad declarativa hace que
-GDL sea potente, pero también introduce complejidad en el diseño del intérprete.
+\begin{definicion}{Fluent}{fluent}
+Un \textit{fluent} es una proposición lógica atómica (indivisible) $f \in \mathcal{F}$ ---concepto originado en el cálculo de situaciones por McCarthy y Hayes \cite{McCarthyHayes1969} y adoptado como base formal en GGP \cite{Love2008GDL, GeneserethThielscher2014}---, cuyo valor de verdad no es estático ni constante, sino una función dependiente del tiempo o del estado del sistema:
+\begin{equation*}
+    \text{val}(f, t) \in \{\text{Verdadero}, \text{Falso}\}
+\end{equation*}
+A diferencia de las relaciones estáticas del dominio, que valen igual durante toda la partida (las dimensiones del tablero o las reglas de adyacencia), un \textit{fluent} representa un hecho contingente del entorno: puede aparecer, mantenerse o desaparecer según las transiciones que provocan las acciones ejecutadas.
+\end{definicion}
 
-Cropper, Evans y Law explican que las reglas de GGP se describen como programas
-lógicos y que especifican elementos como estado inicial, movimientos legales,
-actualización del estado y terminación del juego \cite{Cropper2019IGGP}. Aunque
-su trabajo se enfoca en aprender reglas a partir de trazas de juego, resulta
-relevante porque evidencia la complejidad lógica de representar juegos de manera
-general.
+\begin{definicion}{Estado}{estado}
+En un entorno determinista y de información perfecta, el estado de un juego en el instante $t$ se define lógicamente como la conjunción lógica ($\bigwedge$) de todos los \textit{fluents} atómicos que son verdaderos simultáneamente en ese instante:
+\begin{equation*}
+    s_t \equiv \bigwedge_{i=1}^m f_i = f_1 \land f_2 \land \dots \land f_m
+\end{equation*}
+Bajo la perspectiva conjuntista de la programación lógica declarativa y el principio de mundo cerrado (\textit{Closed World Assumption}) formalizado por Reiter \cite{Reiter1978CWA}, el estado se modela de forma compacta como el subconjunto $s \subseteq \mathcal{F}$ de hechos atómicos verdaderos en dicho instante \cite{GeneserethThielscher2014, Love2008GDL}. En consecuencia, el espacio global de estados satisface:
+\begin{equation*}
+    S \subseteq \mathcal{P}(\mathcal{F})
+\end{equation*}
+donde cualquier \textit{fluent} $f \notin s$ se evalúa formalmente como falso.
+\end{definicion}
+
+\subsubsection{Ejemplo ilustrativo en el juego del Gato}
+
+Para ver esta semántica en un caso concreto, tomemos el juego del Gato (\textit{Tic-Tac-Toe}) sobre una retícula de $3 \times 3$.
+
+El universo de fluents $\mathcal{F}$ tiene dos clases de proposiciones atómicas. Las primeras describen la ocupación de cada casilla: $\mathcal{F}_{\text{celdas}} = \{\text{cell}(r, c, m) \mid r \in \{1,2,3\}, \; c \in \{1,2,3\}, \; m \in \{\text{x}, \text{o}, \text{b}\}\}$, donde $\text{b}$ indica una casilla vacía (\textit{blank}); son $3 \times 3 \times 3 = 27$ átomos posibles. Las segundas indican a quién le toca jugar: $\mathcal{F}_{\text{turno}} = \{\text{control}(\text{x}), \text{control}(\text{o})\}$, que son $2$ átomos. Así, $\mathcal{F} = \mathcal{F}_{\text{celdas}} \cup \mathcal{F}_{\text{turno}}$, con $|\mathcal{F}| = 29$.
+
+Al empezar la partida, las nueve casillas están vacías y el turno es de $\text{x}$. El estado inicial $s_0$ es entonces la conjunción de diez fluents verdaderos:
+\begin{equation}
+    s_0 \equiv \left( \bigwedge_{r=1}^3 \bigwedge_{c=1}^3 \text{cell}(r, c, \text{b}) \right) \land \text{control}(\text{x})
+\end{equation}
+o, en su representación como conjunto:
+\begin{equation}
+    s_0 = \{\text{cell}(1,1,\text{b}), \text{cell}(1,2,\text{b}), \dots, \text{cell}(3,3,\text{b}), \text{control}(\text{x})\}
+\end{equation}
+Proposiciones como $\text{cell}(2,2,\text{x})$ no pertenecen a $s_0$ y, por lo tanto, son falsas en $t = 0$.
+
+Si $\text{x}$ marca el centro con la acción $\text{mark}(2, 2)$, la función de transición quita los fluents invalidados y agrega los nuevos:
+\begin{equation}
+    s_1 = \big( s_0 \setminus \{\text{cell}(2,2,\text{b}), \text{control}(\text{x})\} \big) \cup \{\text{cell}(2,2,\text{x}), \text{control}(\text{o})\}
+\end{equation}
+Como conjunción, la nueva configuración $s_1$ queda así:
+\begin{equation}
+    s_1 \equiv \text{cell}(2,2,\text{x}) \land \text{control}(\text{o}) \land \bigwedge_{(r,c) \neq (2,2)} \text{cell}(r,c,\text{b})
+\end{equation}
+Las ocho celdas vacías restantes se mantienen igual por inercia.
+
+En GDL, para preguntar si un \textit{fluent} vale en el estado actual se usa \texttt{(true f)}. De cómo empieza el juego y de cómo cambia se ocupan \texttt{(init f)} y \texttt{(next f)}; más adelante, en los listados del Gato, se ven los tres en acción \cite{Love2008GDL, GeneserethThielscher2014}.
+
+\subsection{Estado inicial (\texorpdfstring{$s_0$}{s0})}
+
+El elemento distinguido $s_0 \in S$ es la configuración del entorno en el instante $t = 0$, antes de que los agentes tomen ninguna decisión. En una descripción declarativa, $s_0$ se construye con todos los hechos que se declaran mediante el predicado \texttt{(init f)}.
+
+\subsection{Acciones individuales (\texorpdfstring{$A_i$}{Ai}) y espacio conjunto de acciones (\texorpdfstring{$\mathbf{A}$}{A})}
+
+Para cada rol $r_i \in R$, el conjunto finito $A_i = \{a_{i,1}, a_{i,2}, \dots, a_{i,m_i}\}$ reúne las acciones primitivas que ese participante puede concebir. Como el modelo es síncrono, en cada paso de tiempo todos los jugadores eligen una acción a la vez, y el espacio global de decisiones es el producto cartesiano de los conjuntos individuales:
+\begin{equation}
+    \mathbf{A} = \prod_{i=1}^n A_i = A_1 \times A_2 \times \dots \times A_n
+\end{equation}
+Un elemento $\mathbf{a} = (a_1, a_2, \dots, a_n) \in \mathbf{A}$ es una acción conjunta, un vector de decisiones concurrentes en el que cada componente $a_i \in A_i$ es la jugada del rol $r_i$.
+
+\subsection{Función de legalidad (\texorpdfstring{$L_i$}{Li})}
+
+Que una acción sea válida depende del estado actual del sistema. La legalidad de cada jugador $r_i$ se modela con la correspondencia:
+\begin{equation}
+    L_i : S \to \mathcal{P}(A_i)
+\end{equation}
+que asigna a cada configuración $s \in S$ el subconjunto de acciones permitidas $L_i(s) \subseteq A_i$. En su formulación relacional original \cite{Genesereth2005GGP, GeneserethThielscher2014}, el criterio se expresa como una relación binaria $L_i \subseteq A_i \times S$, en la que $(a, s) \in L_i$ significa que la acción $a$ se puede ejecutar en $s$; corresponde directamente al predicado \texttt{(legal r a)} \cite{Love2008GDL}.
+
+Una acción conjunta $\mathbf{a} = (a_1, \dots, a_n)$ es legal en el estado $s$ si y solo si cada componente es legal para su rol:
+\begin{equation}
+    \mathbf{a} \in \mathbf{L}(s) \iff \forall i \in \{1, \dots, n\}, \quad a_i \in L_i(s)
+\end{equation}
+donde $\mathbf{L}(s) = \prod_{i=1}^n L_i(s)$ es el espacio de jugadas conjuntas válidas en ese estado.
+
+\subsection{Función de transición dinámica (\texorpdfstring{$T$}{T})}
+
+La evolución del juego en el tiempo la rige la función de transición determinista:
+\begin{equation}
+    T : S \times \mathbf{A} \to S
+\end{equation}
+que determina de forma única el estado sucesor $s' = T(s, \mathbf{a})$ que resulta de aplicar la acción conjunta $\mathbf{a} \in \mathbf{L}(s)$ sobre la configuración $s$. Dos propiedades la caracterizan. Es estrictamente determinista: a diferencia de los procesos estocásticos o del control continuo, evaluar las reglas produce un único estado resultante y no hay incertidumbre en la física del sistema. Y es reactiva y síncrona: el universo cambia solo como consecuencia de las decisiones conjuntas de los agentes, algo que en GDL se especifica con las reglas de deducción de hechos futuros \texttt{(next f)}.
+
+\subsection{Conjunto de estados terminales (\texorpdfstring{$F$}{F})}
+
+El subconjunto $F \subseteq S$ marca las condiciones en las que termina una partida. Cuando el sistema llega a una configuración $s \in F$, la trayectoria se detiene: ya no se admiten más movimientos y se calculan los resultados finales. En los juegos de mesa, este conjunto incluye situaciones como el jaque mate, las tablas por repetición, una línea ganadora o el tablero lleno. En el motor lógico se verifica con el predicado \texttt{(terminal)}.
+
+\subsection{Función de utilidad o meta (\texorpdfstring{$G_i$}{Gi})}
+
+Para cada participante $r_i \in R$, la función de utilidad o pago:
+\begin{equation}
+    G_i : S \to [0, 100]
+\end{equation}
+Aunque formalmente se puede evaluar en cualquier estado, la función tiene sentido sobre todo en los estados terminales $s \in F$. Siguiendo el estándar de GGP, los valores se normalizan en la escala discreta $[0, 100]$: $100$ es victoria, $0$ derrota y $50$ empate.
+
+En los juegos adversariales de dos participantes y suma constante, como el Ajedrez y el Gato, las utilidades terminales cumplen:
+\begin{equation}
+    G_1(s) + G_2(s) = 100, \quad \forall s \in F
+\end{equation}
+lo cual asegura el carácter competitivo de suma constante que exigen algoritmos como Minimax. Esta función se calcula con la relación lógica \texttt{(goal r v)}.
+
+\subsection{Axiomas de admisibilidad y juegos bien formados}
+
+Para que un agente autónomo pueda resolver computacionalmente un juego formalizado como máquina de estados, se piden dos propiedades estructurales \cite{Genesereth2005GGP, GeneserethThielscher2014}:
+
+\begin{definicion}{Juego bien formado}{juego_bien_formado}
+Un juego formal $\Gamma$ se define como bien formado (\textit{well-formed game}) \cite{Genesereth2005GGP, Love2008GDL, GeneserethThielscher2014} si satisface dos axiomas fundamentales:
+\begin{enumerate}
+    \item \textbf{Jugabilidad (\textit{Playability}):} Para todo estado no terminal, cada rol dispone de al menos una acción legal ejecutable:
+    \begin{equation*}
+        \forall s \in S \setminus F, \quad \forall r_i \in R : \quad L_i(s) \neq \emptyset
+    \end{equation*}
+    Esta condición previene bloqueos indeterminados (\textit{deadlocks}) en la ejecución algorítmica del motor.
+    \item \textbf{Terminación garantizada (\textit{Termination}):} Toda trayectoria legal inducida a partir del estado inicial $s_0$:
+    \begin{equation*}
+        s_0 \xrightarrow{\mathbf{a}_0} s_1 \xrightarrow{\mathbf{a}_1} s_2 \dots \xrightarrow{\mathbf{a}_{k-1}} s_k
+    \end{equation*}
+    debe culminar forzosamente en un estado terminal $s_k \in F$ en un número finito de transiciones ($k < \infty$).
+\end{enumerate}
+\end{definicion}
+
+En dominios donde podrían presentarse ciclos infinitos, la terminación se asegura con reglas de repetición o con cotas explícitas de turnos.
+
+\subsection{Distancia en el grafo de estados y estimación hacia configuraciones terminales}
+
+La relación entre el conjunto de estados terminales $F$ y el axioma de terminación permite definir una noción de distancia en el espacio de estados. En el grafo dirigido que induce la máquina de estados $\Gamma = \langle R, S, s_0, \{A_i\}_{i=1}^n, \{L_i\}_{i=1}^n, T, F, \{G_i\}_{i=1}^n \rangle$, una trayectoria de juego es una secuencia finita de transiciones legales dadas por la función $T(s, \mathbf{a})$. Con esta estructura se puede formalizar la distancia entre dos estados cualesquiera:
+
+\begin{definicion}{Distancia dirigida entre estados}{distancia_estados}
+En un juego formal con espacio de estados $S$, función de transición determinista $T : S \times \mathbf{A} \to S$ y función de legalidad conjunta $\mathbf{L} : S \to \mathcal{P}(\mathbf{A})$, adaptando la formulación de trayectorias en espacios de estados de planificación heurística \cite{BonetGeffner2001, RussellNorvig2010}, la \textbf{distancia en el grafo de estados} $d(s_a, s_b)$ entre una configuración origen $s_a \in S$ y una configuración destino $s_b \in S$ se define como el número mínimo de acciones conjuntas legales requeridas para transitar de $s_a$ a $s_b$:
+\begin{equation*}
+    d(s_a, s_b) = \min \left\{ k \in \mathbb{N} \;\middle|\; \exists \mathbf{a}_0, \dots, \mathbf{a}_{k-1} : s^{(0)} = s_a, \; s^{(j+1)} = T(s^{(j)}, \mathbf{a}_j), \; s^{(k)} = s_b \right\}
+\end{equation*}
+donde cada vector de decisión es admisible en su respectivo estado ($\mathbf{a}_j \in \mathbf{L}(s^{(j)})$ para todo $j \in \{0, \dots, k-1\}$). En caso de que no exista ninguna trayectoria legal originada en $s_a$ que conduzca a $s_b$, la distancia adopta convencionalmente el valor $d(s_a, s_b) = \infty$.
+\end{definicion}
+
+Sobre la notación: el superíndice entre paréntesis $s^{(j)}$ no es una potencia de $s$, sino el \textbf{índice temporal discreto}, es decir, el número de paso a lo largo de la trayectoria. Se usan paréntesis justamente para no confundirlo con un exponente: $s^{(0)} = s_a$ es la configuración inicial, $s^{(1)} = T(s^{(0)}, \mathbf{a}_0)$ el estado tras la primera jugada, $s^{(j)}$ el estado intermedio después de $j$ transiciones y $s^{(k)} = s_b$ el estado final tras $k$ decisiones conjuntas.
+
+Con esta definición se puede obtener la \textbf{distancia al estado terminal más cercano} desde una configuración $s$:
+\begin{equation}
+    d(s, F) = \min_{s_f \in F} d(s, s_f)
+\end{equation}
+De aquí se sigue directamente, por el axioma de terminación finita, que para toda configuración alcanzable en una partida legítima ($s \in \text{Reach}(s_0)$) la distancia al conjunto terminal $F$ es finita y está acotada por el horizonte máximo del juego:
+\begin{equation}
+    \forall s \in \text{Reach}(s_0) : \quad 0 \le d(s, F) \le H_{\max} < \infty
+\end{equation}
+y $d(s, F) = 0$ si y solo si la configuración evaluada ya es un estado terminal ($s \in F$).
+
+Para la toma de decisiones, el conjunto terminal $F$ no es homogéneo: se divide en clases disjuntas según la utilidad $G_i(s)$ de cada participante. En un juego adversarial de suma constante, un agente que juega con el rol $r_i$ distingue dos regiones dentro de $F$: los estados de victoria $F_{\text{victoria}} = \{s \in F \mid G_i(s) = 100\}$ y los de derrota $F_{\text{derrota}} = \{s \in F \mid G_i(s) = 0\}$. Con esa división se puede medir qué tan cerca está el estado actual de cada desenlace:
+\begin{align}
+    d(s, F_{\text{victoria}}) &= \min_{s_f \in F_{\text{victoria}}} d(s, s_f) \\
+    d(s, F_{\text{derrota}}) &= \min_{s_f \in F_{\text{derrota}}} d(s, s_f)
+\end{align}
+
+\noindent
+Los algoritmos de búsqueda adversarial como Minimax buscan maximizar la utilidad terminal esperada $G_i(s)$ del agente, suponiendo que el adversario elegirá las jugadas que la minimicen (principio de inducción hacia atrás):
+\begin{equation}
+    V(s) = \max_{a_i \in L_i(s)} \min_{a_{-i} \in L_{-i}(s)} V\big( T(s, (a_i, a_{-i})) \big)
+\end{equation}
+donde en los nodos terminales $s \in F$ el valor coincide con la utilidad, $V(s) = G_i(s)$. Esta formulación se relaciona con las distancias $d(s, F_{\text{victoria}})$ y $d(s, F_{\text{derrota}})$ de dos maneras.
+
+La primera es como criterio de desempate. Cuando varias ramas llevan a una victoria segura ($G_i(s) = 100$), un agente racional prefiere la acción que minimice $d(s, F_{\text{victoria}})$: gana en menos transiciones y le da menos margen de réplica al adversario. Si la derrota es inevitable ($G_i(s) = 0$), busca lo contrario, maximizar $d(s, F_{\text{derrota}})$, para alargar el final y dar oportunidad a que el rival se equivoque.
+
+La segunda es como heurística sustituta en horizontes finitos. En dominios complejos, la profundidad del juego impide llegar a las hojas terminales y $G_i(s)$ no está disponible en los nodos frontera. Ahí, la cercanía a los subconjuntos terminales, o las cotas calculadas sobre el espacio de \textit{fluents}, funciona como una función heurística que estima la probabilidad o expectativa de ganar y orienta la búsqueda hacia las regiones favorables del espacio de estados.
+
+Sin embargo, en dominios con gran complejidad combinatoria como el Ajedrez, calcular estas distancias de forma exacta con una exploración exhaustiva, por ejemplo una búsqueda en anchura sobre el grafo de estados, es inviable por la explosión exponencial del espacio de búsqueda. Para sortear el obstáculo, en General Game Playing se aprovecha la estructura interna de los \textit{fluents} y se construyen \textbf{cotas inferiores admisibles} que pueden evaluarse rápido durante la ejecución.
+
+Supongamos que una condición terminal de victoria $\mathcal{M} \subset \mathcal{F}$ exige que se cumplan a la vez varios hechos proposicionales (en el Gato, tres fichas juntas en una línea). Se puede contar cuántos de esos \textit{fluents} aún no se han materializado en el estado actual:
+\begin{equation}
+    \text{Faltantes}(s, \mathcal{M}) = \left\{ f \in \mathcal{M} \mid f \notin s \right\}
+\end{equation}
+La dinámica del juego limita cuántos hechos meta se pueden agregar en una sola transición. Si llamamos $c \in \mathbb{N}$ a esa cota de producción (típicamente $c = 1$ cuando cada jugador añade a lo sumo una marca o pieza por movimiento), la distancia real al estado terminal tiene una cota inferior analítica:
+\begin{equation}
+    d(s, s_{\mathcal{M}}) \ge \left\lceil \frac{|\text{Faltantes}(s, \mathcal{M})|}{c} \right\rceil
+\end{equation}
+En el Gato, si una configuración $s$ ya tiene dos marcas de $\text{x}$ en una misma fila, al conjunto de hechos faltantes para completar la línea solo le queda un elemento ($|\text{Faltantes}| = 1$). Como $c = 1$, la cota inferior garantiza que la victoria exige al menos una jugada propia, y eso le permite al agente explorar primero esa alternativa antes que otras ramas tácticas secundarias.
+
+En los motores avanzados de GGP \cite{Clune2007ClunePlayer, Schiffel2007Fluxplayer}, este principio se extiende con la \textbf{relajación de efectos negativos} (\textit{delete relaxation}), una técnica que Bonet y Geffner formularon en planificación heurística \cite{BonetGeffner2001} y que después se adaptó al razonamiento heurístico general. Consiste en ignorar de manera temporal las reglas que destruyen o invalidan \textit{fluents}, suponiendo de forma optimista que los hechos verdaderos nunca se eliminan ni se sobrescriben. Con ese supuesto, encontrar la trayectoria más corta hacia cualquier configuración terminal de $F$ deja de ser intratable y se resuelve en tiempo polinomial. La longitud del camino calculado en el espacio relajado sirve como heurística informada y admisible, y permite estimar numéricamente qué tan cerca está el final de la partida sin usar funciones de evaluación hechas a mano para un juego en particular.
+
+\subsection{Modelado síncrono de juegos por turnos alternados}
+
+Aunque el producto cartesiano $\mathbf{A} = A_1 \times A_2$ supone que las decisiones son simultáneas, los juegos típicamente secuenciales, como el Gato o el Ajedrez, encajan en este esquema mediante una acción pasiva o nula, $\text{noop}$ (\textit{no-operation}) \cite{Love2008GDL, GeneserethThielscher2014}.
+
+En un estado $s$ donde le corresponde mover al jugador blanco, la función de legalidad asigna:
+\begin{align}
+    L_{\text{blancas}}(s) &\subseteq A_{\text{blancas}} \setminus \{\text{noop}\} \\
+    L_{\text{negras}}(s) &= \{\text{noop}\}
+\end{align}
+y la única acción conjunta admisible es el par ordenado:
+\begin{equation}
+    \mathbf{a} = (a_{\text{blanca}}, \text{noop})
+\end{equation}
+Al calcular la transición $s' = T(s, \mathbf{a})$, las reglas del juego actualizan los fluents de control y se invierte la legalidad en la siguiente configuración:
+\begin{align}
+    L_{\text{blancas}}(s') &= \{\text{noop}\} \\
+    L_{\text{negras}}(s') &\subseteq A_{\text{negras}} \setminus \{\text{noop}\}
+\end{align}
+Así la máquina de estados conserva una arquitectura síncrona homogénea sin perder la alternancia secuencial propia del dominio.
+
+\subsection{Interfaz computacional para el motor de decisión}
+
+Para que esta formalización pueda usarse en la arquitectura de software del agente, el motor de juego debe ofrecer una interfaz programática con cinco consultas básicas: obtener el estado inicial ($s_0$); consultar las acciones legales de un jugador en un estado dado ($L_i(s)$); aplicar una acción conjunta y calcular el estado sucesor ($T(s, \mathbf{a})$); determinar si un estado cumple la condición de terminación ($s \in F$); y evaluar la utilidad que obtiene cada participante ($G_i(s)$).
+
+Con esta interfaz, el motor de búsqueda queda completamente separado de las particularidades de cada juego. El algoritmo de decisión razona solo sobre estados abstractos, acciones legales y recompensas numéricas, sin conocimiento empírico propio del dominio.
+
+\section{Lenguaje de descripción de juegos (GDL)}
+\label{sec:lenguajes_descripcion_juegos}
+
+Para que un agente pueda jugar sin que nadie le explique las reglas, estas tienen que estar escritas en un lenguaje que él mismo pueda leer, analizar y ejecutar. Eso es un lenguaje de descripción de juegos. En \textit{General Game Playing}, el de referencia es el \textit{Game Description Language} (GDL), desarrollado en la Universidad de Stanford \cite{Love2008GDL, Genesereth2005GGP}.
+
+En un lenguaje imperativo como C++ o Python, la lógica de un juego se programa con estructuras de control, bucles y modificaciones destructivas de la memoria: se ordena qué hacer paso a paso. Un lenguaje de descripción de reglas va por otro lado, el declarativo, y en lugar de decir cómo se ejecuta el juego, dice qué es.
+
+\subsection{Características fundamentales de GDL}
+
+A partir de los fundamentos de Genesereth et al. \cite{Genesereth2005GGP}, Love et al. \cite{Love2008GDL} y Cropper et al. \cite{Cropper2019IGGP}, pueden destacarse cuatro propiedades de GDL.
+
+La primera es que se basa en lógica de primer orden y es declarativo. El autor del juego no programa cómo se ejecutan las jugadas: solo declara qué hechos son verdaderos y bajo qué condiciones cambian, y es el motor de inferencia del agente el que deduce las consecuencias de esas reglas. La segunda es su independencia del dominio. GDL no trae ideas previas sobre geometría de tableros, piezas de ajedrez o cartas; todo se representa con símbolos abstractos, y un agente general aprende la física y las restricciones del entorno mientras procesa el archivo de reglas, porque no las conoce de antemano.
+
+La tercera es su semántica, basada en Datalog con negación estratificada. GDL es una variante estricta de Datalog que limita el uso de funciones recursivas complejas, lo que garantiza que el espacio de estados y la deducción lógica sean finitos y decidibles en cada paso de tiempo, y evita ciclos de inferencia infinitos. La cuarta es el desacoplamiento arquitectónico: la física del juego, descrita en el archivo de reglas, queda totalmente separada de los algoritmos de búsqueda y decisión, que viven en el motor del agente. Por eso el mismo núcleo puede jugar juegos muy distintos sin cambiar una línea de código fuente.
+
+\subsection{Concepto y estructura de un predicado lógico}
+
+Para entender la sintaxis de GDL sin caer en un formalismo matemático excesivo, conviene partir de la experiencia del desarrollo de software:
+
+\begin{definicion}{Predicado lógico}{predicado_logico}
+En la semántica lógica declarativa de GDL \cite{Love2008GDL, GeneserethThielscher2014}, un \textbf{predicado} es una afirmación estructurada sobre uno o varios objetos del dominio que, al ser evaluada contra el estado actual del juego, devuelve estrictamente un valor de verdad: verdadero o falso.
+\end{definicion}
+
+Un programador que quiere saber si hay una cruz en el renglón 1 y la columna 1 escribiría algo como \texttt{tablero[1][1] == 'x'}: mirar una celda de una matriz. GDL no consulta nada, afirma un hecho. La misma pregunta se escribe
+\begin{center}
+    \texttt{(cell 1 1 x)}
+\end{center}
+y la respuesta es simplemente si ese hecho es verdadero o falso en el estado actual.
+
+Un predicado se escribe como una lista entre paréntesis y tiene tres partes. La primera es el \textit{functor}, el identificador inicial que dice qué propiedad o relación se expresa (por ejemplo, \texttt{cell}, \texttt{control}, \texttt{legal}, \texttt{next}). La segunda son los términos o argumentos, los elementos sobre los que recae la afirmación. Estos pueden ser constantes, símbolos atómicos que denotan objetos concretos del dominio, como coordenadas (\texttt{1}, \texttt{2}, \texttt{3}) o identificadores (\texttt{x}, \texttt{o}, y \texttt{b} para una casilla vacía o \textit{blank}); o variables, que en GDL son cualquier símbolo que empieza con un signo de interrogación (\texttt{?r} para el renglón, \texttt{?c} para la columna, \texttt{?p} para el participante) y permiten escribir reglas generales válidas para cualquier casilla o jugador.
+
+La tercera parte es la aridad, el número de argumentos que acepta el predicado. Con aridad 0 tenemos una proposición pura, como \texttt{(terminal)}, que no recibe argumentos y expresa un hecho global: si la partida terminó. Con aridad 1, una propiedad de un objeto, por ejemplo \texttt{(role x)} o \texttt{(control x)}, que indican que \texttt{x} es un rol o que tiene el turno. Con aridad 3, una relación ternaria como \texttt{(cell 2 2 x)}, que une renglón, columna y ficha.
+
+\subsubsection{Construcción de reglas de inferencia (\texorpdfstring{\texttt{<=}}{<=})}
+
+Los hechos no siempre están dados de forma estática; muchas veces hay que deducirlos de otros hechos. Para eso, GDL usa reglas de inferencia con el operador de implicación \texttt{<=}, que se lee ``la cabeza es verdadera si todas las premisas del cuerpo son verdaderas'':
+
+\begin{lstlisting}[caption={Estructura canónica de una regla de inferencia en GDL.},label={lst:estructura_regla}]
+(<= (cabeza_deducida)
+    (premisa_o_condicion_1)
+    (premisa_o_condicion_2)
+    ...
+    (premisa_o_condicion_k))
+\end{lstlisting}
+
+El motor lógico solo da por cierta la cabeza si logra verificar que todas las condiciones del cuerpo se cumplen a la vez en el estado del juego.
+
+\subsection{Predicados reservados del sistema en GDL}
+
+Para que un archivo de reglas describa la tupla formal $\Gamma$ de la Sección \ref{sec:modelo_formal_juego}, GDL define un conjunto cerrado de ocho predicados del sistema \cite{Love2008GDL, GeneserethThielscher2014}, que se resumen en la Tabla \ref{tab:predicados_gdl}.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Predicados reservados de GDL y componente de $\Gamma$ que describen.}
+\label{tab:predicados_gdl}
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Predicado} & \textbf{Función} \\
+\midrule
+\texttt{(role ?r)} & Declara a los participantes del juego e instancia el conjunto $R$. \\
+\texttt{(init ?f)} & Especifica los fluents atómicos que forman el estado inicial $s_0$. \\
+\texttt{(true ?f)} & Consulta si un fluent dinámico $f$ es verdadero en el estado actual $s$. \\
+\texttt{(does ?r ?a)} & Representa la acción $a \in A_i$ que el rol $r$ ejecuta en el turno corriente. \\
+\texttt{(legal ?r ?a)} & Deduce si la acción $a$ pertenece al conjunto de jugadas permitidas $L_i(s)$. \\
+\texttt{(next ?f)} & Deduce qué fluents formarán parte del estado sucesor $s' = T(s, \mathbf{a})$. \\
+\texttt{(terminal)} & Evalúa si la configuración actual pertenece al conjunto de estados terminales $F$. \\
+\texttt{(goal ?r ?v)} & Determina la utilidad o recompensa numérica $G_i(s) = v \in [0, 100]$ del jugador $r$. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ejemplificación mediante código de especificación: El juego del Gato}
+
+Para ver cómo trabajan juntos estos predicados, tomemos la especificación del juego del Gato (\textit{Tic-Tac-Toe}), que se puede dividir en cuatro bloques lógicos.
+
+\subsubsection{Roles y estado inicial}
+
+El primer bloque (Código \ref{lst:gdl_roles_init}) declara los dos jugadores y describe el tablero al inicio ($t = 0$): las nueve casillas vacías (\texttt{b}) y el turno en manos de \texttt{x}.
+
+\begin{lstlisting}[caption={Declaración de roles y estado inicial para el juego del Gato.},label={lst:gdl_roles_init}]
+;; ==========================================
+;; 1. Declaracion de roles (Jugadores)
+;; ==========================================
+(role x)
+(role o)
+
+;; ==========================================
+;; 2. Estado inicial (t = 0):
+;;    Nueve casillas vacias (b = blank)
+;;    y control asignado a x
+;; ==========================================
+(init (cell 1 1 b))
+(init (cell 1 2 b))
+(init (cell 1 3 b))
+(init (cell 2 1 b))
+(init (cell 2 2 b))
+(init (cell 2 3 b))
+(init (cell 3 1 b))
+(init (cell 3 2 b))
+(init (cell 3 3 b))
+(init (control x))
+\end{lstlisting}
+
+\subsubsection{Reglas de legalidad y alternancia de turnos}
+
+El segundo bloque (Código \ref{lst:gdl_legal}) formaliza la función de legalidad $L_i(s)$. Una jugada es legal si quien la intenta tiene el control y la casilla elegida está libre. La sincronía se modela con la jugada nula \texttt{noop}:
+
+\begin{lstlisting}[caption={Reglas de legalidad de movimientos en GDL.},label={lst:gdl_legal}]
+;; ==========================================
+;; 3. Acciones legales
+;; ==========================================
+;; Un jugador puede marcar (?r, ?c) si es su turno
+;; y la casilla actualmente contiene 'b'
+(<= (legal ?p (mark ?r ?c))
+    (true (control ?p))
+    (true (cell ?r ?c b)))
+
+;; Si NO es el turno del jugador, su unica accion legal es 'noop'
+(<= (legal ?p noop)
+    (role ?p)
+    (not (true (control ?p))))
+\end{lstlisting}
+
+Con estas reglas el motor rechaza por sí solo cualquier intento de poner una ficha en una casilla ocupada, y al rival que no tiene el turno le deja únicamente la acción nula.
+
+\subsubsection{Transición de estado y persistencia inercial}
+
+El tercer bloque (Código \ref{lst:gdl_next}) gobierna la función de transición $T(s, \mathbf{a})$. En lógica declarativa, un hecho no se conserva en el estado siguiente a menos que una regla lo diga de forma explícita, así que hay que definir tanto los cambios directos como la inercia del sistema:
+
+\begin{lstlisting}[caption={Reglas de transicion dinamica e inercia en GDL.},label={lst:gdl_next}]
+;; ==========================================
+;; 4. Funcion de transicion (Siguiente estado)
+;; ==========================================
+;; A. Efecto directo: la casilla marcada pasa a tener la ficha del jugador
+(<= (next (cell ?r ?c ?p))
+    (does ?p (mark ?r ?c)))
+
+;; B. Inercia de fichas: las celdas ya marcadas conservan su contenido
+(<= (next (cell ?r ?c ?mark))
+    (true (cell ?r ?c ?mark))
+    (distinct ?mark b))
+
+;; C. Inercia de celdas vacias: una casilla sigue vacia si nadie la marco
+(<= (next (cell ?r ?c b))
+    (true (cell ?r ?c b))
+    (not (does x (mark ?r ?c)))
+    (not (does o (mark ?r ?c))))
+
+;; D. Alternancia del turno
+(<= (next (control o)) (true (control x)))
+(<= (next (control x)) (true (control o)))
+\end{lstlisting}
+
+\subsubsection{Condiciones terminales y asignación de recompensas}
+
+El cuarto bloque (Código \ref{lst:gdl_terminal_goal}) define el conjunto de estados terminales $F$ y la función de utilidad $G_i(s)$: premia la formación de líneas de tres fichas y reconoce el empate cuando el tablero se llena:
+
+\begin{lstlisting}[caption={Reglas de utilidad (goal) y condicion de terminacion en GDL.},label={lst:gdl_terminal_goal}]
+;; ==========================================
+;; 5. Condiciones de victoria y utilidades
+;; ==========================================
+;; Victoria absoluta (100 puntos) si el jugador forma una linea
+(<= (goal ?p 100) (line ?p))
+
+;; Derrota (0 puntos) si el adversario completo una linea
+(<= (goal ?p 0)   (role ?p) (line ?other) (distinct ?p ?other))
+
+;; Empate (50 puntos) si el tablero esta lleno y nadie gano
+(<= (goal ?p 50)  (role ?p) (not (line x)) (not (line o)) board_full)
+
+;; ==========================================
+;; 6. Condicion de fin de partida (terminal)
+;; ==========================================
+(<= terminal (line x))
+(<= terminal (line o))
+(<= terminal board_full)
+\end{lstlisting}
+
+Este ejemplo muestra qué tan expresivo puede ser un lenguaje de descripción de juegos: en menos de cincuenta líneas declarativas, y sin una sola instrucción imperativa de control, el archivo describe completo el universo de reglas del Gato.
 
 \section{GDL, Ludii y lenguajes de dominio específico}
 
-El uso de GDL clásico no es la única alternativa para describir juegos. Existen
-otros lenguajes de descripción que buscan equilibrar expresividad, legibilidad y
-facilidad de implementación. Ludii, por ejemplo, propone un lenguaje de
-descripción de juegos de mayor nivel, con conceptos más cercanos al diseño de
-juegos, como tablero, piezas y movimientos \cite{Soemers2024Ludii}.
+Describir un juego con GDL clásico es una opción entre varias. Otros lenguajes intentan que la escritura sea más cómoda sin perder expresividad ni volverse difíciles de implementar. Ludii es un caso claro: en vez de predicados lógicos habla de tableros, piezas y movimientos, más cerca de cómo piensa quien diseña juegos \cite{Soemers2024Ludii}.
 
-La comparación entre GDL y Ludii es importante para este Trabajo Terminal porque
-plantea una decisión arquitectónica: implementar GDL completo, adoptar un
-subconjunto de GDL o diseñar un lenguaje de dominio específico (DSL) inspirado en
-estos enfoques. GDL ofrece una base académica fuerte y una semántica lógica
-general, pero puede resultar complejo para un prototipo de alcance acotado.
-Ludii, por su parte, muestra que un lenguaje puede conservar generalidad y al
-mismo tiempo ser más legible para diseñadores y desarrolladores.
+Comparar GDL con Ludii importa para este Trabajo Terminal porque obliga a tomar una decisión de arquitectura: implementar GDL completo, adoptar solo un subconjunto o diseñar un lenguaje de dominio específico (DSL) inspirado en ambos. GDL tiene una base académica sólida y una semántica lógica general, pero puede resultar pesado para un prototipo de alcance acotado. Ludii, por su parte, demuestra que un lenguaje puede seguir siendo general y ser más legible para quienes diseñan y desarrollan juegos.
 
-Un DSL propio permitiría concentrarse en los elementos necesarios para el
-alcance del proyecto: jugadores, estados, acciones, reglas de legalidad,
-transiciones, condiciones terminales y recompensas. Esta opción debe justificarse
-formalmente para evitar que el lenguaje se convierta en una colección de casos
-especiales. El criterio de diseño debe ser que el lenguaje permita describir
-juegos dentro del alcance definido: discretos, deterministas, por turnos y de
-información perfecta.
+Un DSL propio permitiría concentrarse en lo que el proyecto necesita: jugadores, estados, acciones, reglas de legalidad, transiciones, condiciones terminales y recompensas. Esta opción tendrá que justificarse formalmente, para que el lenguaje no termine siendo una colección de casos especiales. El criterio de diseño es que permita describir los juegos dentro del alcance definido: discretos, deterministas, por turnos y de información perfecta.
 
 \section{Intérprete y representación interna}
 
-El archivo de reglas no es suficiente por sí mismo para jugar. Se requiere un
-intérprete que lea la descripción, valide su estructura y construya una
-representación interna consultable por el motor del agente. Este proceso suele
-incluir análisis léxico, análisis sintáctico, validación semántica y construcción
-de un modelo interno.
+Tener el archivo de reglas no basta para jugar. Hace falta un intérprete que lea la descripción, valide su estructura y construya una representación interna que el motor del agente pueda consultar. El proceso suele pasar por análisis léxico, análisis sintáctico, validación semántica y construcción de un modelo interno.
 
-El análisis léxico separa el texto en unidades reconocibles. El análisis
-sintáctico verifica que esas unidades respeten la gramática del lenguaje. La
-validación semántica revisa que las reglas sean coherentes con el modelo del
-juego, por ejemplo que las acciones referencien jugadores existentes o que una
-condición terminal pueda evaluarse. Finalmente, la representación interna
-organiza esa información para responder consultas durante la partida.
+El análisis léxico separa el texto en unidades reconocibles y el sintáctico comprueba que esas unidades respeten la gramática del lenguaje. La validación semántica revisa que las reglas tengan sentido dentro del modelo de juego; por ejemplo, que las acciones hagan referencia a jugadores que existen o que una condición terminal pueda evaluarse. Al final, la representación interna organiza toda esa información para responder consultas durante la partida.
 
-La representación interna debe funcionar como puente entre el lenguaje textual y
-los algoritmos de decisión. Una vez construido el modelo, el motor no debería
-procesar directamente cadenas de texto, sino estructuras que permitan evaluar
-legalidad, transiciones y recompensas. Esta separación mejora la mantenibilidad:
-en principio, el lenguaje textual podría cambiar sin modificar por completo el
-motor de búsqueda, siempre que se preserve la interfaz conceptual del juego.
+La representación interna hace de puente entre el lenguaje textual y los algoritmos de decisión. Una vez construido el modelo, el motor ya no debería trabajar con cadenas de texto, sino con estructuras que permitan evaluar legalidad, transiciones y recompensas. Esto ayuda al mantenimiento: en principio se podría cambiar el lenguaje textual sin rehacer el motor de búsqueda, siempre que se conserve la interfaz conceptual del juego.
 
-En implementaciones avanzadas de GGP, las reglas también pueden compilarse en
-estructuras más eficientes. Goldwaser y Thielscher mencionan que una descripción
-GDL puede convertirse en una red proposicional, o PropNet, con nodos lógicos,
-nodos de entrada, salida y transición \cite{Goldwaser2020DRLGGP}. Esta idea es
-relevante porque interpretar reglas desde cero en cada nodo de búsqueda puede
-ser costoso. Aunque implementar una PropNet completa puede quedar fuera de una
-primera versión, el concepto ayuda a entender por qué la eficiencia de la
-representación interna es tan importante como el algoritmo de búsqueda.
+En las implementaciones avanzadas de GGP, las reglas también pueden compilarse en estructuras más eficientes. Goldwaser y Thielscher señalan que una descripción GDL puede convertirse en una red proposicional (PropNet), con nodos lógicos, de entrada, de salida y de transición \cite{Goldwaser2020DRLGGP}. Esto interesa porque interpretar las reglas desde cero en cada nodo de búsqueda resulta caro. Una PropNet completa quizá quede fuera de una primera versión, pero la idea sirve para entender por qué la eficiencia de la representación interna pesa tanto como el algoritmo de búsqueda.
 
 \section{Árboles de juego y explosión combinatoria}
 
-Una vez que el sistema puede generar acciones legales y aplicar transiciones, se
-puede construir un árbol de juego. La raíz del árbol representa el estado actual.
-Cada rama representa una acción legal y cada nodo hijo representa el estado
-resultante. Al repetir este proceso, el agente puede anticipar posibles futuros y
-comparar las consecuencias de distintas decisiones.
+Con acciones legales y transiciones ya se puede armar un árbol de juego \cite{RussellNorvig2010}: la raíz es el estado actual, de ella salen tantas ramas como acciones legales haya, y cada rama termina en el estado que produce esa acción. Si el proceso se repite, el agente ve hacia adelante y puede comparar a dónde lleva cada decisión.
 
-El problema es que el número de nodos crece rápidamente. Si un estado tiene un
-factor de ramificación promedio de \(b\) acciones y se explora hasta una
-profundidad \(d\), el número de nodos puede crecer en el orden de \(b^d\). En
-juegos pequeños, este crecimiento puede ser manejable. En juegos complejos,
-explorar todas las posibilidades resulta impracticable.
+El problema es que el número de nodos crece muy rápido. Si un estado tiene un factor de ramificación promedio de \(b\) acciones y se explora hasta la profundidad \(d\), el número de nodos puede crecer del orden de \(b^d\). En juegos pequeños es manejable; en juegos complejos, explorarlo todo no es práctico.
 
-La explosión combinatoria obliga a limitar la búsqueda. El agente debe decidir
-cuánto explorar, qué ramas priorizar y cómo evaluar estados no terminales. Aquí
-aparecen algoritmos como Minimax, poda alfa-beta y Monte Carlo Tree Search, así
-como funciones heurísticas que estiman la calidad de un estado sin llegar
-necesariamente al final de la partida.
+Por la explosión combinatoria hay que limitar la búsqueda: el agente debe decidir cuánto explorar, qué ramas priorizar y cómo evaluar los estados que no son terminales. Aquí entran Minimax, la poda alfa-beta y Monte Carlo Tree Search, junto con funciones heurísticas que estiman qué tan bueno es un estado sin llegar hasta el final de la partida.
 
 \section{Minimax}
 
-Minimax es un algoritmo clásico para juegos adversariales de dos jugadores. Su
-principio básico consiste en suponer que un jugador intenta maximizar su utilidad
-mientras el oponente intenta minimizarla. En un árbol de juego, los niveles se
-alternan entre decisiones del jugador MAX y decisiones del jugador MIN.
+Minimax es un algoritmo clásico para juegos adversariales de dos jugadores. Se apoya en el teorema minimax de von Neumann \cite{VonNeumann1928} y fue formulado para decidir en árboles de juego por Shannon \cite{Shannon1950} y, más tarde, por Russell y Norvig \cite{RussellNorvig2010}. La idea básica es suponer que un jugador trata de maximizar su utilidad mientras que el oponente trata de minimizarla, de modo que en el árbol los niveles se alternan entre decisiones de MAX y de MIN.
 
-Si el árbol puede explorarse hasta estados terminales, Minimax puede seleccionar
-una acción óptima bajo el supuesto de que ambos jugadores actúan racionalmente.
-El valor de un estado terminal se obtiene directamente de la utilidad del juego.
-El valor de un estado no terminal se calcula propagando hacia arriba los valores
-de sus sucesores: MAX elige el mayor valor disponible y MIN elige el menor.
+\begin{definicion}{Función de valor Minimax y decisión óptima}{valor_minimax}
+En un juego formal de dos participantes ($R = \{r_1, r_2\}$) determinista, de información perfecta y suma constante \cite{VonNeumann1928, Shannon1950, RussellNorvig2010}, el \textbf{valor Minimax} $V(s)$ de un estado $s \in S$ desde la perspectiva de MAX ($r_1$) se define recursivamente como:
+\begin{equation}
+    V(s) = \begin{cases} 
+    G_1(s) & \text{si } s \in F \\ 
+    \max_{a \in L_1(s)} V(T(s, (a, \text{noop}))) & \text{si el turno corresponde a } r_1 \\ 
+    \min_{a \in L_2(s)} V(T(s, (\text{noop}, a))) & \text{si el turno corresponde a } r_2 
+    \end{cases}
+\end{equation}
+La \textbf{decisión óptima} $a^* \in L_i(s)$ para el participante activo corresponde a la acción que optimiza (maximiza para $r_1$, minimiza para $r_2$) el valor del estado sucesor inducido.
+\end{definicion}
 
-En la práctica, muchos juegos no permiten explorar hasta el final. Por ello, se
-establece una profundidad máxima y se evalúan los estados frontera mediante una
-función heurística. Esta adaptación permite aplicar Minimax en juegos más
-grandes, pero introduce una pregunta central para GGP: cómo evaluar estados sin
-usar conocimiento específico del juego.
+Si el árbol puede explorarse por completo hasta los estados terminales $F$, Minimax garantiza elegir una acción óptima siempre que ambos jugadores actúen racionalmente. El valor de un estado terminal sale directo de la función de utilidad $G_1(s)$, y el de cualquier estado no terminal se calcula propagando hacia arriba los valores de sus sucesores: MAX toma el mayor y MIN el menor.
+
+En la práctica, casi todos los juegos tienen factores de ramificación demasiado grandes para llegar a la frontera terminal. Por eso se fija una profundidad máxima de búsqueda y se evalúan los estados de la frontera con una función heurística. Así Minimax se puede usar en juegos más grandes, pero aparece la pregunta central para \textit{General Game Playing}: cómo evaluar estados sin usar conocimiento del dominio programado de antemano.
 
 \section{Poda alfa-beta}
 
-La poda alfa-beta es una optimización de Minimax. No cambia la decisión final
-cuando se aplica bajo las mismas condiciones de evaluación, pero evita explorar
-ramas que no pueden modificar el resultado. Para ello mantiene dos valores:
-alfa, que representa la mejor alternativa encontrada por MAX, y beta, que
-representa la mejor alternativa encontrada por MIN.
+La poda alfa-beta es una optimización básica de Minimax, analizada con detalle por Knuth y Moore \cite{KnuthMoore1975} y descrita en la literatura clásica de inteligencia artificial \cite{RussellNorvig2010}. Bajo las mismas condiciones de evaluación no cambia la decisión final, pero evita explorar las ramas que no pueden modificar el resultado. Para ello mantiene dos valores: alfa, la mejor alternativa que ha encontrado MAX, y beta, la mejor que ha encontrado MIN.
 
-Cuando el algoritmo detecta que una rama no puede producir una decisión mejor que
-otra ya conocida, deja de explorarla. De esta manera, reduce el número de nodos
-visitados y permite alcanzar mayor profundidad con el mismo presupuesto
-computacional. La efectividad de la poda depende del orden en que se exploran
-las acciones; si las mejores acciones se revisan temprano, se pueden descartar
-más ramas.
+Cuando detecta que una rama no puede dar una decisión mejor que otra ya conocida, deja de explorarla. Así visita menos nodos y puede llegar a mayor profundidad con el mismo presupuesto de cómputo. Su efectividad depende del orden en que se exploren las acciones: si las mejores se revisan temprano, se descartan más ramas.
 
-Para este Trabajo Terminal, alfa-beta es relevante porque permite comparar dos
-ideas: la decisión producida por Minimax y la eficiencia lograda al podar ramas.
-En una evaluación experimental, métricas como nodos explorados, tiempo de
-decisión y profundidad alcanzada pueden mostrar si la optimización mejora el
-rendimiento sin alterar la legalidad ni la coherencia de las jugadas.
+En este Trabajo Terminal, alfa-beta interesa porque permite comparar dos cosas: la decisión que produce Minimax y la eficiencia que se gana al podar. En la evaluación experimental, métricas como los nodos explorados, el tiempo de decisión y la profundidad alcanzada pueden mostrar si la optimización mejora el rendimiento sin afectar la legalidad ni la coherencia de las jugadas. La Figura \ref{fig:poda_alfa_beta} muestra cómo funciona el corte: en cuanto MIN encuentra una alternativa con valor menor o igual a la cota $\alpha$ que MAX ya tiene asegurada, se descartan de inmediato los demás sucesores de ese subárbol.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\footnotesize,
+    maxnode/.style={regular polygon, regular polygon sides=3, draw=blue!80!black, fill=blue!15, line width=0.8pt, inner sep=1.2pt},
+    minnode/.style={regular polygon, regular polygon sides=3, shape border rotate=180, draw=red!80!black, fill=red!15, line width=0.8pt, inner sep=1.2pt},
+    leafnode/.style={draw=gray!80!black, fill=gray!12, rounded corners=2pt, font=\scriptsize\bfseries, minimum size=5.5mm},
+    prunednode/.style={draw=gray!50, fill=gray!5, rounded corners=2pt, font=\scriptsize\color{gray!60}, minimum size=5.5mm},
+    edge/.style={thick, draw=gray!70!black},
+    prunededge/.style={dashed, draw=red!60!black, thick}
+]
+
+% Nivel 0 (MAX)
+\node[maxnode] (root) at (0, 3.2) {\scriptsize $3$};
+\node[above=0.15cm of root, font=\scriptsize\bfseries\color{blue!80!black}] {MAX ($\alpha=3$)};
+
+% Nivel 1 (MIN)
+\node[minnode] (min1) at (-3.2, 1.6) {\scriptsize $3$};
+\node[minnode] (min2) at (3.2, 1.6) {\scriptsize $\le 2$};
+\node[left=0.15cm of min1, font=\scriptsize\bfseries\color{red!80!black}] {MIN};
+\node[right=0.15cm of min2, font=\scriptsize\bfseries\color{red!80!black}] {MIN ($\beta \le 2$)};
+
+\draw[edge] (root) -- node[above left, font=\scriptsize] {$a_1$} (min1);
+\draw[edge] (root) -- node[above right, font=\scriptsize] {$a_2$} (min2);
+
+% Nivel 2 (Hojas de min1)
+\node[leafnode] (h1) at (-4.2, 0) {$3$};
+\node[leafnode] (h2) at (-2.2, 0) {$5$};
+\draw[edge] (min1) -- (h1);
+\draw[edge] (min1) -- (h2);
+
+% Nivel 2 (Hojas de min2)
+\node[leafnode] (h3) at (2.0, 0) {$2$};
+\draw[edge] (min2) -- (h3);
+
+% Ramas podadas
+\node[prunednode] (h4) at (3.4, 0) {$9$};
+\node[prunednode] (h5) at (4.6, 0) {$1$};
+\draw[prunededge] (min2) -- (h4);
+\draw[prunededge] (min2) -- (h5);
+
+% Cruz de poda
+\draw[red!80!black, line width=1.4pt] (3.6, 0.9) -- (4.2, 0.5);
+\draw[red!80!black, line width=1.4pt] (3.6, 0.5) -- (4.2, 0.9);
+\node[font=\scriptsize\bfseries\color{red!80!black}, anchor=west] at (4.4, 0.8) {Corte $\alpha$ ($\beta \le \alpha$)};
+
+\end{tikzpicture}
+\caption{Árbol de juego adversarial con poda alfa-beta. Tras evaluarse el nodo con valor $2$, el nodo MIN asegura un valor a lo sumo de $2$, el cual es estrictamente inferior al valor $\alpha = 3$ ya garantizado por MAX en la rama izquierda; en consecuencia, se interrumpe la exploración del resto de los sucesores.}
+\label{fig:poda_alfa_beta}
+\end{figure}
 
 \section{Funciones heurísticas generales}
 
-Una función heurística estima qué tan favorable es un estado cuando no es posible
-explorar el árbol hasta el final. En motores especializados, las heurísticas
-suelen incorporar conocimiento del dominio. En Ajedrez, por ejemplo, puede
-asignarse valor a piezas o evaluar control del centro. Sin embargo, esas reglas
-no son generales. Si el agente conoce el valor de una reina, entonces contiene
-conocimiento específico de Ajedrez.
+Una función heurística estima qué tan favorable es un estado cuando no se puede explorar el árbol hasta el final. En los motores especializados suele llevar conocimiento del dominio; en Ajedrez, por ejemplo, se puede dar un valor a cada pieza o medir el control del centro. Pero esas reglas no son generales: si el agente sabe cuánto vale una reina, ya trae conocimiento específico de Ajedrez.
 
-El reto en General Game Playing es construir evaluaciones que no dependan de la
-semántica particular de un juego. Una heurística general puede considerar
-propiedades estructurales, como movilidad, cantidad de acciones legales,
-proximidad a estados terminales, cambios de recompensa o resultados obtenidos
-por simulación. Ninguna de estas medidas garantiza por sí sola buen desempeño en
-todos los juegos, pero pueden servir como aproximaciones dentro de un agente
-agnóstico al dominio.
+En GGP el problema es evaluar sin saber de qué juego se trata. Se puede recurrir a rasgos estructurales: cuántas acciones legales hay (la movilidad), qué tan cerca se está de un estado terminal, cómo cambian las recompensas o qué resultados dan las simulaciones. Ninguno de estos rasgos funciona bien en todos los juegos; lo valioso es que ninguno presupone un dominio y, combinados, pueden aproximar una evaluación en un agente que no conoce el juego.
 
-Este problema es uno de los puntos más importantes del proyecto. La búsqueda
-limitada necesita una forma de decidir qué estados parecen mejores, pero la
-generalidad exige que esa evaluación no esté escrita para un dominio concreto.
-Por ello, el análisis de heurísticas generales y métodos basados en simulación
-forma parte central de la fundamentación teórica del motor de decisión.
+Aquí está uno de los puntos más delicados del proyecto. Limitar la búsqueda obliga a decidir qué estados parecen mejores, pero ser generales impide escribir esa evaluación para un juego concreto. De ahí que las heurísticas generales y los métodos basados en simulación ocupen un lugar central en la fundamentación teórica del motor de decisión.
 
 \section{Monte Carlo Tree Search}
 
-Monte Carlo Tree Search (MCTS) es una familia de métodos de búsqueda que estima
-el valor de las acciones mediante simulaciones. En lugar de depender
-exclusivamente de una función heurística explícita, MCTS construye
-progresivamente un árbol de búsqueda y utiliza resultados de partidas simuladas
-para orientar la exploración \cite{Browne2012MCTS}.
+Monte Carlo Tree Search (MCTS) es una familia de métodos de búsqueda que estima el valor de las acciones mediante simulaciones. En vez de depender solo de una función heurística explícita, va construyendo poco a poco un árbol de búsqueda y usa los resultados de partidas simuladas para orientar la exploración \cite{Coulom2006MCTS, Browne2012MCTS}.
 
-El ciclo general de MCTS se compone de cuatro etapas:
+MCTS funciona como un ciclo iterativo y asimétrico de cuatro fases que se repite mientras haya tiempo de cómputo, como se ve en la Figura \ref{fig:mcts_ciclo}. En la \textit{selección}, el algoritmo baja por el árbol acumulado desde la raíz eligiendo los sucesores más prometedores con una política de balance. En la \textit{expansión} se agregan uno o varios nodos hijos que corresponden a acciones legales aún no exploradas. En la \textit{simulación}, o \textit{rollout}, se juega una partida rápida con movimientos muestreados al azar hasta llegar a una configuración terminal. Por último, en la \textit{retropropagación}, la recompensa terminal se propaga hacia la raíz y actualiza las estadísticas de visitas y el valor medio de cada estado del camino recorrido.
 
-\begin{itemize}
-    \item selección, donde se baja por el árbol eligiendo nodos prometedores;
-    \item expansión, donde se agrega un nuevo nodo;
-    \item simulación, donde se juega desde ese nodo hasta obtener un resultado;
-    \item retropropagación, donde el resultado actualiza los valores de los
-    nodos visitados.
-\end{itemize}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\footnotesize,
+    node distance=0.45cm and 0.45cm,
+    treenode/.style={circle, draw=gray!70!black, fill=white, inner sep=1.8pt, line width=0.6pt},
+    rootnode/.style={circle, draw=blue!80!black, fill=blue!15, inner sep=2.2pt, line width=0.8pt},
+    selnode/.style={circle, draw=blue!80!black, fill=blue!30, inner sep=2pt, line width=0.9pt},
+    newnode/.style={circle, draw=green!60!black, fill=green!35, inner sep=2pt, line width=0.9pt},
+    termnode/.style={regular polygon, regular polygon sides=4, draw=orange!80!black, fill=orange!30, inner sep=2pt, line width=0.8pt},
+    treeedge/.style={draw=gray!60!black, line width=0.6pt},
+    seledge/.style={draw=blue!80!black, line width=1.3pt, -{Stealth[scale=0.8]}},
+    simedge/.style={draw=orange!80!black, dashed, line width=0.9pt, -{Stealth[scale=0.8]}},
+    backedgel/.style={draw=red!70!black, line width=1.1pt, dashed, -{Stealth[scale=0.8]}}
+]
 
-MCTS resulta atractivo para GGP porque puede reducir la dependencia de
-heurísticas específicas. Si el sistema cuenta con un modelo de juego capaz de
-generar acciones legales, aplicar transiciones y detectar terminales, entonces
-puede simular partidas y estimar el valor de acciones a partir de resultados.
-No obstante, su rendimiento depende de la calidad del modelo interno y del
-presupuesto de simulación disponible.
+% ------------------- (1) SELECCIÓN -------------------
+\begin{scope}[xshift=0cm]
+\node[rootnode] (r1) at (0, 2.5) {};
+\node[selnode] (c11) at (-0.6, 1.6) {};
+\node[treenode] (c12) at (0.6, 1.6) {};
+\node[treenode] (c111) at (-0.9, 0.7) {};
+\node[selnode] (c112) at (-0.3, 0.7) {};
+
+\draw[seledge] (r1) -- (c11);
+\draw[treeedge] (r1) -- (c12);
+\draw[treeedge] (c11) -- (c111);
+\draw[seledge] (c11) -- (c112);
+
+\node[below=0.15cm of c112, font=\scriptsize\bfseries\color{blue!80!black}] {UCT};
+\node[draw=gray!30, rounded corners=4pt, line width=0.5pt, fit=(r1) (c111) (c12) (c112), inner sep=4pt, label={[font=\scriptsize\bfseries]below:1. Selección}] {};
+\end{scope}
+
+% ------------------- (2) EXPANSIÓN -------------------
+\begin{scope}[xshift=3.7cm]
+\node[rootnode] (r2) at (0, 2.5) {};
+\node[selnode] (c21) at (-0.6, 1.6) {};
+\node[treenode] (c22) at (0.6, 1.6) {};
+\node[treenode] (c211) at (-0.9, 0.7) {};
+\node[selnode] (c212) at (-0.3, 0.7) {};
+\node[newnode] (c2new) at (-0.3, -0.2) {};
+
+\draw[treeedge] (r2) -- (c21);
+\draw[treeedge] (r2) -- (c22);
+\draw[treeedge] (c21) -- (c211);
+\draw[treeedge] (c21) -- (c212);
+\draw[draw=green!60!black, line width=1.1pt, -{Stealth[scale=0.8]}] (c212) -- (c2new);
+
+\node[right=0.08cm of c2new, font=\tiny\bfseries\color{green!60!black}] {Nuevo};
+\node[draw=gray!30, rounded corners=4pt, line width=0.5pt, fit=(r2) (c211) (c22) (c2new), inner sep=4pt, label={[font=\scriptsize\bfseries]below:2. Expansión}] {};
+\end{scope}
+
+% ------------------- (3) SIMULACIÓN -------------------
+\begin{scope}[xshift=7.4cm]
+\node[rootnode] (r3) at (0, 2.5) {};
+\node[treenode] (c31) at (-0.6, 1.6) {};
+\node[treenode] (c32) at (0.6, 1.6) {};
+\node[treenode] (c311) at (-0.9, 0.7) {};
+\node[treenode] (c312) at (-0.3, 0.7) {};
+\node[newnode] (c3new) at (-0.3, -0.2) {};
+\node[termnode] (c3term) at (-0.3, -1.3) {};
+
+\draw[treeedge] (r3) -- (c31);
+\draw[treeedge] (r3) -- (c32);
+\draw[treeedge] (c31) -- (c311);
+\draw[treeedge] (c31) -- (c312);
+\draw[treeedge] (c312) -- (c3new);
+\draw[simedge] (c3new) -- node[right, font=\tiny] {\textit{Rollout}} (c3term);
+
+\node[right=0.08cm of c3term, font=\tiny\bfseries\color{orange!80!black}] {$R = 100$};
+\node[draw=gray!30, rounded corners=4pt, line width=0.5pt, fit=(r3) (c311) (c32) (c3term), inner sep=4pt, label={[font=\scriptsize\bfseries]below:3. Simulación}] {};
+\end{scope}
+
+% ------------------- (4) RETROPROPAGACIÓN -------------------
+\begin{scope}[xshift=11.1cm]
+\node[selnode] (r4) at (0, 2.5) {};
+\node[selnode] (c41) at (-0.6, 1.6) {};
+\node[treenode] (c42) at (0.6, 1.6) {};
+\node[treenode] (c411) at (-0.9, 0.7) {};
+\node[selnode] (c412) at (-0.3, 0.7) {};
+\node[newnode] (c4new) at (-0.3, -0.2) {};
+\node[termnode] (c4term) at (-0.3, -1.3) {};
+
+\draw[treeedge] (r4) -- (c41);
+\draw[treeedge] (r4) -- (c42);
+\draw[treeedge] (c41) -- (c411);
+\draw[treeedge] (c41) -- (c412);
+\draw[treeedge] (c412) -- (c4new);
+
+\draw[backedgel] (c4term) to[bend left=25] (c4new);
+\draw[backedgel] (c4new) to[bend left=25] (c412);
+\draw[backedgel] (c412) to[bend left=25] (c41);
+\draw[backedgel] (c41) to[bend left=25] (r4);
+
+\node[right=0.05cm of r4, font=\tiny\bfseries\color{red!70!black}] {$N++, Q+v$};
+\node[draw=gray!30, rounded corners=4pt, line width=0.5pt, fit=(r4) (c411) (c42) (c4term), inner sep=4pt, label={[font=\scriptsize\bfseries]below:4. Retropropagación}] {};
+\end{scope}
+
+\end{tikzpicture}
+\caption{Ciclo iterativo de cuatro fases en Monte Carlo Tree Search (MCTS): Selección de nodos mediante la cota UCT, Expansión de nuevas acciones legales, Simulación estocástica (\textit{rollout}) hasta un estado terminal y Retropropagación de recompensas hacia la raíz.}
+\label{fig:mcts_ciclo}
+\end{figure}
+
+Lo que hace tentador a MCTS para GGP es que no exige heurísticas propias de un juego. Basta con un modelo capaz de dar las acciones legales, aplicar una transición y decir cuándo se terminó la partida; con eso se juegan partidas al azar y los resultados indican qué acciones convienen. El costo es que todo depende de qué tan rápido y bien esté hecho ese modelo, y de cuántas simulaciones alcancen en el tiempo disponible.
 
 \section{UCT}
 
-Una cuestión central en MCTS es decidir qué rama explorar. Si el agente explora
-solo la acción que hasta ahora parece mejor, puede ignorar alternativas poco
-visitadas que resultarían superiores. Si explora demasiado al azar, puede perder
-tiempo en acciones de baja calidad. UCT, o Upper Confidence Bounds applied to
-Trees, aborda este equilibrio entre explotación y exploración.
+Una pregunta central en la fase de selección de MCTS es qué rama explorar. Si el agente explora solo la acción que hasta ese momento parece la mejor, corre el riesgo de ignorar alternativas poco visitadas que en realidad serían superiores. Si explora sin criterio, puede perder tiempo de cómputo en acciones de baja calidad. El algoritmo UCT (\textit{Upper Confidence Bounds applied to Trees}) trata este dilema entre explotación y exploración de manera formal \cite{Kocsis2006UCT, Browne2012MCTS}.
 
-UCT combina el valor promedio observado de una acción con un término que favorece
-acciones menos exploradas. De forma conceptual, una acción es atractiva si ya ha
-producido buenos resultados o si aún no ha sido visitada lo suficiente. Este
-criterio permite que MCTS refine progresivamente sus estimaciones sin abandonar
-por completo la exploración.
+\begin{definicion}{Criterio de selección UCT}{criterio_uct}
+En el marco de Monte Carlo Tree Search \cite{Coulom2006MCTS, Browne2012MCTS}, para cada nodo interno $v$ del árbol de búsqueda, la política de selección \textbf{UCT} (\textit{Upper Confidence Bounds applied to Trees}) \cite{Kocsis2006UCT}, fundamentada en la cota UCB1 para problemas de bandidos multi-brazo \cite{Auer2002UCB}, elige descender hacia el nodo hijo $v^*$ que maximiza la cota superior de confianza:
+\begin{equation}
+    v^* = \arg\max_{v' \in \text{hijos}(v)} \left[ \frac{Q(v')}{N(v')} + C \cdot \sqrt{\frac{\ln N(v)}{N(v')}} \right]
+\end{equation}
+donde $Q(v')$ denota la recompensa acumulada del nodo hijo $v'$, $N(v')$ es el número de visitas recibidas por dicho hijo, $N(v)$ es el número total de visitas registradas en el nodo padre $v$, y $C > 0$ es la constante teórica de exploración (frecuentemente establecida como $C = \sqrt{2}$ para recompensas normalizadas en el intervalo $[0, 1]$).
+\end{definicion}
 
-En el contexto de General Game Playing, UCT ha sido importante porque ofrece una
-estrategia relativamente general para seleccionar acciones en árboles de juego
-sin requerir una heurística escrita manualmente para cada dominio. Goldwaser y
-Thielscher señalan que agentes exitosos de GGP han usado enfoques basados en
-búsqueda y heurísticas generales, y que posteriormente se han explorado métodos
-basados en aprendizaje por refuerzo profundo \cite{Goldwaser2020DRLGGP}.
+El primer sumando, $\frac{Q(v')}{N(v')}$, es el componente de explotación: favorece las ramas que han dado una tasa de éxito promedio alta en las simulaciones previas. El segundo, $C \cdot \sqrt{\frac{\ln N(v)}{N(v')}}$, es el término de exploración: mientras el nodo padre se sigue visitando y una rama secundaria $v'$ no se elige, el cociente crece de forma monótona, lo que empuja al árbol a examinar alternativas poco muestreadas y evita que converja demasiado pronto a óptimos locales.
+
+En \textit{General Game Playing}, UCT ha sido clave porque ofrece una estrategia general y asintóticamente consistente para dirigir la búsqueda en árboles de juego, sin necesitar funciones de evaluación diseñadas a mano para cada dominio. Goldwaser y Thielscher destacan que los agentes más competitivos de GGP han basado su desempeño en esta combinación de búsqueda por simulación y cotas de confianza, que además sirvió de base para desarrollos recientes con redes neuronales profundas \cite{Goldwaser2020DRLGGP}.
 
 \section{Aprendizaje por refuerzo y aprendizaje profundo}
 
-El aprendizaje por refuerzo estudia agentes que aprenden mediante interacción
-con un entorno. En cada paso, el agente observa un estado, ejecuta una acción,
-recibe una recompensa y transita a un nuevo estado. A diferencia del aprendizaje
-supervisado, no siempre existe una respuesta correcta inmediata para cada
-estado; el agente debe aprender a partir de recompensas que pueden aparecer al
-final de una secuencia de acciones.
+El aprendizaje por refuerzo parte de una escena sencilla: un agente en un entorno mira el estado, actúa, recibe una recompensa y cae en otro estado. No hay un maestro que diga en cada paso qué era lo correcto, como ocurre en el aprendizaje supervisado; en un juego, la señal de que algo salió bien o mal puede llegar solo al terminar la partida, y el agente tiene que averiguar qué jugadas la provocaron.
 
-En juegos, el aprendizaje por refuerzo puede utilizar resultados como victoria,
-derrota o empate para ajustar una política de decisión. Cuando se combina con
-redes neuronales profundas, se habla de aprendizaje por refuerzo profundo. Este
-enfoque permite aproximar funciones complejas de valor o política, pero suele
-requerir muchos datos, entrenamiento intensivo y representaciones adecuadas del
-estado.
+En los juegos, el resultado final (ganar, perder o empatar) puede servir para ajustar la política de decisión del agente. Al combinar esto con redes neuronales profundas se habla de aprendizaje por refuerzo profundo, capaz de aproximar funciones de valor o de política muy complejas, aunque a cambio pide muchos datos, un entrenamiento intensivo y una buena forma de representar el estado.
 
-Para un GGP, el aprendizaje por refuerzo profundo plantea una dificultad
-adicional: el agente no solo debe aprender a jugar, sino operar sobre juegos
-descritos externamente. Esto implica que la representación del estado y de las
-acciones debe ser suficientemente general. Por esta razón, el aprendizaje
-profundo se considera en este trabajo principalmente como antecedente y línea de
-investigación avanzada, no como requisito central de implementación.
+Con aprendizaje profundo el problema se complica en GGP. No basta con que el agente aprenda a jugar bien: tiene que hacerlo con juegos que le llegan descritos desde fuera, y eso obliga a que la representación del estado y de las acciones sirva para cualquiera de ellos. Por esa razón lo tratamos aquí como antecedente y como línea de investigación avanzada, y no como algo que este proyecto vaya a implementar.
 
 \section{AlphaZero como antecedente moderno}
 
-AlphaZero representa un antecedente importante porque combinó autojuego,
-aprendizaje por refuerzo profundo y búsqueda Monte Carlo para alcanzar alto
-desempeño en Ajedrez, Shogi y Go \cite{Silver2018AlphaZero}. Su arquitectura
-utiliza una red neuronal para estimar una política de acciones y un valor de
-estado, mientras MCTS refina la selección de movimientos mediante búsqueda.
+AlphaZero es un antecedente importante porque combinó autojuego, aprendizaje por refuerzo profundo y búsqueda Monte Carlo para alcanzar un alto desempeño en Ajedrez, Shogi y Go \cite{Silver2018AlphaZero}. Su arquitectura usa una red neuronal que estima una política de acciones y un valor de estado, mientras que MCTS afina la elección de movimientos con búsqueda.
 
-Sin embargo, AlphaZero no resuelve por sí mismo el problema central de este
-Trabajo Terminal. Aunque emplea un algoritmo general en más de un juego, requiere
-simuladores y representaciones adecuadas para cada dominio. En un GGP, el reto
-principal es distinto: interpretar reglas externas, construir el modelo del
-juego y permitir que el motor de decisión opere sin conocimiento específico
-codificado para cada caso.
+Sin embargo, AlphaZero no resuelve por sí mismo el problema central de este Trabajo Terminal. Aunque usa un algoritmo general para más de un juego, necesita simuladores y representaciones adecuadas para cada dominio. En un GGP el reto es otro: interpretar reglas externas, construir el modelo del juego y lograr que el motor de decisión funcione sin conocimiento específico codificado para cada caso.
 
-Goldwaser y Thielscher extienden ideas de aprendizaje por refuerzo profundo al
-contexto de GGP y muestran que existe una línea de investigación que busca unir
-descripciones formales de juegos con métodos inspirados en AlphaZero
-\cite{Goldwaser2020DRLGGP}. Para el alcance de este Trabajo Terminal, estas
-ideas sirven como referencia del estado del arte y ayudan a delimitar el
-proyecto: se busca una arquitectura general e interpretable, no replicar un
-sistema de entrenamiento profundo a gran escala.
+Goldwaser y Thielscher llevan ideas de aprendizaje por refuerzo profundo al contexto de GGP y muestran que existe una línea de investigación que intenta unir descripciones formales de juegos con métodos inspirados en AlphaZero \cite{Goldwaser2020DRLGGP}. Para el alcance de este trabajo, esas ideas son una referencia del estado del arte y ayudan a acotar el proyecto: se busca una arquitectura general e interpretable, no replicar un sistema de entrenamiento profundo a gran escala.
 
 \section{Síntesis del marco teórico}
 
-El desarrollo de un General Game Player requiere integrar varias áreas de la
-inteligencia artificial y de las ciencias computacionales. Primero, se necesita
-una representación formal del juego que separe estados, acciones, transiciones,
-terminalidad y recompensas. Segundo, se requiere un lenguaje de descripción o DSL
-capaz de expresar reglas sin codificarlas directamente en el motor. Tercero, es
-necesario un intérprete que transforme esa descripción en una representación
-interna consultable. Finalmente, el agente debe seleccionar acciones mediante
-algoritmos generales de búsqueda o simulación.
+Desarrollar un General Game Player exige integrar varias áreas de la inteligencia artificial y de las ciencias computacionales. Primero, una representación formal del juego que separe estados, acciones, transiciones, terminalidad y recompensas. Segundo, un lenguaje de descripción o DSL que exprese las reglas sin codificarlas directamente en el motor. Tercero, un intérprete que convierta esa descripción en una representación interna consultable. Y por último, un agente que elija acciones con algoritmos generales de búsqueda o simulación.
 
-La cadena conceptual del proyecto puede resumirse como:
+Esa integración se organiza en un flujo desacoplado, que muestra la Figura \ref{fig:flujo_arquitectura_ggp}. El analizador léxico y sintáctico procesa el archivo de reglas externo y crea en memoria el modelo formal $\Gamma$. Sobre este modelo, el generador de estados resuelve consultas abstractas de legalidad, transiciones y condiciones terminales, y con eso el motor de decisión (Minimax, poda alfa-beta o MCTS) elige la mejor acción disponible $\mathbf{a}^*$ sin guardar conocimiento particular del dominio.
 
-\begin{center}
-    reglas externas $\rightarrow$ intérprete $\rightarrow$ representación interna
-    $\rightarrow$ acciones legales $\rightarrow$ árbol de juego $\rightarrow$
-    decisión.
-\end{center}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=0.55cm and 0.7cm,
+    font=\footnotesize,
+    block/.style={draw, rounded corners=3pt, align=center, line width=0.7pt, minimum height=0.9cm},
+    extfile/.style={block, fill=gray!12, draw=gray!70, minimum width=2.5cm},
+    coremod/.style={block, fill=blue!8, draw=blue!70!black, minimum width=2.9cm},
+    datamod/.style={block, fill=teal!8, draw=teal!70!black, minimum width=2.9cm},
+    decmod/.style={block, fill=orange!10, draw=orange!75!black, minimum width=2.9cm},
+    actmod/.style={block, fill=green!10, draw=green!65!black, minimum width=2.5cm},
+    arrow/.style={-{Stealth[scale=0.9]}, thick, draw=gray!80!black},
+    bidir/.style={{Stealth[scale=0.85]}-{Stealth[scale=0.85]}, thick, draw=blue!75!black}
+]
 
-La aportación del trabajo no radica en construir el mejor jugador de un juego
-particular, sino en demostrar una arquitectura desacoplada. El motor debe
-mantenerse estable cuando cambia la descripción del juego. Por ello, Gato sirve
-como caso funcional completo para validar el flujo de reglas, estados y
-terminalidad, mientras Ajedrez funciona como caso controlado de mayor
-complejidad. Esta delimitación permite estudiar generalidad operacional sin
-confundir el prototipo con un motor especializado de competencia.
+% Fila superior
+\node[extfile] (rules) {\textbf{Archivo de Reglas}\\(DSL / GDL externo)};
+\node[coremod, right=of rules] (parser) {\textbf{Intérprete Sintáctico}\\Validación y análisis léxico};
+\node[datamod, right=of parser] (model) {\textbf{Modelo en Memoria $\Gamma$}\\$R, S, A, T, L, U, s_0, F$};
+
+% Fila inferior
+\node[actmod, below=1.3cm of rules] (action) {\textbf{Acción Seleccionada $\mathbf{a}^*$}\\Ejecución en tablero};
+\node[decmod, right=of action] (engine) {\textbf{Motor de Decisión}\\Minimax / Alfa-Beta / MCTS};
+\node[coremod, right=of engine] (gen) {\textbf{Generador de Estados}\\$L_i(s)$, $T(s, \mathbf{a})$, terminales};
+
+\draw[arrow] (rules) -- node[above, font=\tiny] {Lectura} (parser);
+\draw[arrow] (parser) -- node[above, font=\tiny] {Instanciación} (model);
+\draw[arrow] (model) -- node[right, font=\tiny] {Estructura} (gen);
+\draw[bidir] (gen) -- node[above, font=\tiny] {Consultas abstractas} (engine);
+\draw[arrow] (engine) -- node[above, font=\tiny] {Selección} (action);
+
+\node[draw=blue!50!black, dashed, rounded corners=5pt, line width=0.6pt, fit=(parser) (model) (gen) (engine), inner sep=7pt, label={[font=\footnotesize\bfseries\color{blue!80!black}]above:Arquitectura del General Game Player (agnóstica al dominio)}] (box_ggp) {};
+
+\end{tikzpicture}
+\caption{Flujo conceptual de ejecución y arquitectura desacoplada del General Game Player.}
+\label{fig:flujo_arquitectura_ggp}
+\end{figure}
+
+Lo que aporta este trabajo no es el mejor jugador de un juego en particular, sino una arquitectura desacoplada: el motor debe seguir igual cuando cambia la descripción del juego. Por eso el Gato sirve como caso funcional completo para validar el flujo de reglas, estados y terminalidad, y el Ajedrez como caso controlado de mayor complejidad. Con esta delimitación se puede estudiar la generalidad operativa sin confundir el prototipo con un motor especializado de competencia.

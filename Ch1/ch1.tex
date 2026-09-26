@@ -1,3 +1,118 @@
 \chapter{Introducción}
+\label{ch:introduccion}
 
+\section{Contexto y motivación}
+
+Los juegos acompañan a la inteligencia artificial desde sus primeros años. Sirven como banco de pruebas porque tienen reglas explícitas, espacios de estados discretos y resultados que cualquiera puede verificar, algo que el mundo físico rara vez ofrece \cite{RussellNorvig2010}. En la década de 1950, Arthur L. Samuel escribió un programa para jugar a las damas inglesas que combinaba búsqueda Minimax con una evaluación heurística y que mejoraba con la experiencia acumulada \cite{Samuel1959}. Con él se popularizó el término \textit{machine learning}, aunque la idea ya la había explorado en teoría Alan Turing \cite{Turing1950}; lo que hizo Samuel fue llevarla a la práctica.
+
+Las décadas siguientes dejaron varios hitos frente a jugadores humanos. En 1997, Deep Blue, la supercomputadora de IBM, derrotó al campeón mundial Garry Kasparov \cite{Campbell2002DeepBlue}. Lo logró con hardware masivamente paralelo y una búsqueda alfa-beta que examinaba hasta doscientos millones de posiciones por segundo, guiada por una función de evaluación pensada y ajustada solo para el ajedrez. Después, el sistema Chinook resolvió el juego de damas \cite{Schaeffer2007Checkers} y, en años más recientes, AlphaGo \cite{Silver2016AlphaGo} y AlphaZero \cite{Silver2018AlphaZero} alcanzaron un nivel sobrehumano en ajedrez, Shogi y Go combinando redes neuronales profundas con aprendizaje por refuerzo.
+
+Aun así, estos sistemas comparten una limitación: cada uno está hecho para un solo dominio. Deep Blue no se diseñó para lidiar con la geometría del Go, el programa de Samuel no sabe nada de las reglas del ajedrez y la arquitectura de AlphaGo está atada a su tablero original. No es un defecto de implementación, sino una consecuencia de cómo se concibieron. Ni siquiera AlphaZero, que usa un mismo algoritmo de aprendizaje para tres juegos, escapa del todo, porque las reglas y las transiciones de cada juego siguen escritas a mano en el código de su simulador. AlphaZero no puede leer la descripción de un juego nuevo y entenderla por sí solo; antes alguien tiene que sentarse a programar qué jugadas son legales en ese tablero.
+
+Para atacar esta limitación, a partir de 2005 la Universidad de Stanford y la \textit{Association for the Advancement of Artificial Intelligence} (AAAI) impulsaron la línea de investigación conocida como \textit{General Game Playing} (GGP) \cite{Genesereth2005GGP, GeneserethThielscher2014}. Aquí el objetivo ya no es construir el mejor programa para un juego concreto, sino un agente que reciba la descripción formal de un juego que nunca ha visto y lo juegue bien, sin apoyarse en algoritmos o heurísticas escritos para ese dominio \cite{Love2008GDL}. El trabajo de fondo pasa así del programador al agente, que debe interpretar la lógica del juego, armar sus propias representaciones internas y decidir en tiempo real.
+
+\section{Planteamiento del problema}
+
+Los agentes de juego tradicionales dependen demasiado de las reglas del entorno para el que fueron escritos. Sus estructuras de datos se diseñan a la medida del tablero y sus funciones heurísticas incorporan conocimiento empírico del dominio, como el valor relativo de las piezas en el ajedrez o tablas de posiciones ganadoras calculadas de antemano.
+
+En General Game Playing el agente tiene que manejar el espacio de estados $\mathcal{S}$ de cualquier juego que le toque, sin saber de antemano cómo funciona. Desde la teoría de juegos, un juego de información perfecta se modela con una tupla formal: los jugadores, los estados válidos, las acciones permitidas, la función de transición y las utilidades terminales. El problema es el tamaño. Las configuraciones posibles crecen de forma exponencial y a veces ni siquiera se pueden recorrer completas.
+
+Un ejemplo ayuda a ver la diferencia entre todas las configuraciones que una representación puede armar y las que el juego realmente admite. Tomemos el problema de las 8 damas como un juego de un solo jugador en un tablero de $8 \times 8$. Si el agente representa una posición como un vector $v = (v_1, v_2, \dots, v_8)$, donde cada $v_i \in \{0, 1, \dots, 7\}$ es la fila ocupada en la columna $i$, el \textbf{espacio de configuraciones de la representación} ($\mathcal{S}_{\text{rep}}$) es el producto cartesiano $\{0, 1, \dots, 7\}^8$, con $8^8 = 16\,777\,216$ elementos. El \textbf{espacio de estados válidos} ($\mathcal{S}$) es bastante menor: si las reglas piden a lo sumo una dama por fila y por columna, quedan solo las permutaciones de ocho elementos, es decir $8! = 40\,320$ estados. Y dentro de estos, los \textbf{estados solución} ($\mathcal{S}_{\text{solución}} \subset \mathcal{S}$) son aquellos en los que ninguna dama ataca a otra, ni en fila, ni en columna, ni en diagonal. Para el tablero de $8 \times 8$ hay exactamente $92$, que se reducen a 12 soluciones fundamentales si se consideran equivalentes las rotaciones y reflexiones. Frente a una configuración cualquiera, el agente no trae nada de esto cableado. Debe decidir por sí mismo si pertenece a $\mathcal{S}$ y si es una solución, y solo cuenta con las reglas declarativas que se le entregan.
+
+En juegos adversariales más complejos el problema crece mucho. Para el ajedrez se estima que el número de posiciones legales alcanzables está entre $10^{43}$ y $10^{46}$ \cite{Shannon1950, Chinchalkar1996}, y el árbol de juego completo ronda las $10^{120}$ partidas posibles, la cifra conocida como número de Shannon \cite{Shannon1950}. Sin funciones de evaluación hechas a mano ni bibliotecas de aperturas dentro del núcleo, el agente tiene que leer el archivo de reglas mientras corre, calcular las acciones legales de cada turno y estimar qué tan buena es cada jugada, todo con límites estrictos de tiempo y memoria.
+
+El problema que atiende este Trabajo Terminal es, entonces, cómo construir una arquitectura de software desacoplada, basada en un lenguaje de descripción de reglas y en un intérprete eficiente, de modo que un motor de decisión que no conoce el dominio pueda jugar varios juegos de información perfecta: que reconozca estados válidos, aplique transiciones y elija jugadas competitivas, sin tocar su código fuente. Qué tan competitivas resultan esas jugadas se medirá enfrentando al agente con agentes de referencia y con motores de nivel configurable.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    box/.style={draw=black!70, rounded corners=3pt, fill=gray!8, align=center, font=\small, inner sep=5pt, line width=0.8pt},
+    engine/.style={draw=blue!70!black, rounded corners=4pt, fill=blue!8, align=center, font=\small\bfseries, inner sep=6pt, line width=0.9pt},
+    file/.style={draw=darkgreen!80!black, rounded corners=3pt, fill=darkgreen!10, align=center, font=\small, inner sep=5pt, line width=0.9pt},
+    action/.style={draw=orange!80!black, rounded corners=4pt, fill=orange!12, align=center, font=\small\bfseries, inner sep=5pt, line width=0.9pt},
+    arrow/.style={-{Stealth[scale=1.0]}, line width=0.9pt, draw=black!75}
+]
+
+% Panel superior: Motor Especializado
+\node[box, fill=red!6, draw=red!60!black, text width=3.8cm] (spec_rules) {
+    \textbf{Reglas cableadas en código}\\
+    \scriptsize Tablero $8\times8$, piezas fijas, heurísticas manuales de ajedrez
+};
+\node[engine, right=0.9cm of spec_rules, text width=3.6cm] (spec_engine) {
+    \textbf{Motor Especializado}\\
+    \scriptsize Búsqueda acoplada\\ (p.~ej., Deep Blue / Stockfish)
+};
+\node[action, right=0.9cm of spec_engine, text width=2.4cm] (spec_out) {
+    \textbf{Jugada de Ajedrez}\\
+    \scriptsize Inoperante en otros juegos
+};
+
+\draw[arrow] (spec_rules) -- (spec_engine);
+\draw[arrow] (spec_engine) -- (spec_out);
+
+\node[draw=red!50!black, dotted, line width=0.8pt, fit=(spec_rules) (spec_engine) (spec_out), inner sep=7pt, label={[font=\footnotesize\bfseries\color{red!60!black}]above:(a) Arquitectura tradicional: Motor especializado hiperacoplado}] (box_a) {};
+
+% Panel inferior: GGP
+\node[file, below=1.6cm of spec_rules, text width=3.8cm] (ggp_file) {
+    \textbf{Archivo de Reglas Externo}\\
+    \scriptsize Formato estructurado (GDL / DSL)\\
+    \textit{Gato, Ajedrez, Damas, etc.}
+};
+\node[box, fill=teal!8, draw=teal!70!black, right=0.6cm of ggp_file, text width=2.6cm] (ggp_interp) {
+    \textbf{Módulo Intérprete}\\
+    \scriptsize Generador de estados y transiciones válidas $\mathcal{S}$
+};
+\node[engine, right=0.6cm of ggp_interp, text width=2.8cm] (ggp_engine) {
+    \textbf{Motor de Búsqueda}\\
+    \scriptsize Minimax / $\alpha$-$\beta$ / MCTS agnóstico al dominio
+};
+\node[action, right=0.6cm of ggp_engine, text width=2.2cm] (ggp_out) {
+    \textbf{Acción Seleccionada}\\
+    \scriptsize Válida para cualquier juego cargado
+};
+
+\draw[arrow] (ggp_file) -- (ggp_interp);
+\draw[arrow] (ggp_interp) -- (ggp_engine);
+\draw[arrow] (ggp_engine) -- (ggp_out);
+
+\node[draw=blue!60!black, dashed, line width=0.8pt, fit=(ggp_file) (ggp_interp) (ggp_engine) (ggp_out), inner sep=7pt, label={[font=\footnotesize\bfseries\color{blue!70!black}]above:(b) Arquitectura propuesta: General Game Player (GGP) desacoplado}] (box_b) {};
+
+\end{tikzpicture}
+\caption{Comparación estructural entre un motor especializado tradicional y la arquitectura desacoplada de un General Game Player.}
+\label{fig:comparativa_arquitectura_ggp}
+\end{figure}
+
+\section{Justificación}
+
+El punto de partida de este trabajo es una incomodidad concreta: casi todos los agentes de juego quedan atados a un solo dominio. Tanto en la industria como en la academia lo habitual es dejar fijos, dentro del código fuente, las reglas, el tablero y las mecánicas. Un General Game Player que no dependa del dominio ofrece otra salida, porque el mismo programa se reutiliza con juegos distintos.
+
+Lo distintivo de la propuesta es que el agente no sabe nada de ningún juego. No juega bien por consejos que dejó un experto humano, sino porque lee la descripción formal de las reglas y aplica procesos generales de búsqueda heurística y simulación. Las transiciones válidas y las condiciones de victoria salen del código ejecutable y pasan a un archivo externo estructurado; con eso se busca que el motor de inteligencia artificial quede separado por completo de la lógica de cada juego.
+
+Desde la Ingeniería en Sistemas Computacionales, el desarrollo reúne varias áreas. Hace falta teoría de lenguajes formales y autómatas para diseñar el análisis léxico, sintáctico y semántico del intérprete de reglas; también modelado matemático y estructuras de datos eficientes para guardar en memoria espacios de estados enormes; y, por último, algoritmos de decisión adversarial, tanto clásicos como modernos, como Minimax con poda alfa-beta y Monte Carlo Tree Search (MCTS).
+
+El proyecto, además, es viable en recursos y en tiempo dentro del ciclo anual de Trabajo Terminal en la Escuela Superior de Cómputo del Instituto Politécnico Nacional. No se pretende competir con los sistemas industriales de aprendizaje profundo, que requieren supercómputo, sino comprobar que una arquitectura modular, de escala académica, puede lograr generalidad procesando reglas declarativas y aplicando búsqueda heurística general.
+
+\section{Objetivos}
+
+\subsection{Objetivo general}
+
+Diseñar e implementar un General Game Player (GGP) para juegos de información perfecta, capaz de interpretar las reglas de distintos entornos a partir de un lenguaje de descripción estructurado, basado en un modelo formal de juego. El agente debe ajustar su toma de decisiones a la especificación que se le cargue, sin modificar el código fuente de su motor algorítmico base.
+
+\subsection{Objetivos específicos}
+
+\begin{enumerate}
+    \item Diseñar la sintaxis y la semántica del lenguaje de descripción de reglas, es decir, el formato del archivo.
+    \item Desarrollar el intérprete y el generador de estados.
+    \item Implementar el motor de toma de decisiones del agente.
+    \item Validar la generalización del agente y del formato de archivo con dominios de reglas muy distintos, en particular el Gato (\textit{Tic-Tac-Toe}) y el Ajedrez, de modo que el cambio de comportamiento dependa únicamente del archivo de especificación.
+    \item Evaluar el desempeño táctico del agente en ajedrez mediante partidas contra un motor especializado con ELO configurable, y obtener métricas como tasa de victorias, longitud de las partidas y tiempo de respuesta por jugada.
+\end{enumerate}
+
+\section{Alcance y limitaciones}
+
+Este Trabajo Terminal se limita a juegos que cumplen cuatro condiciones a la vez: información perfecta (el estado completo de la partida y el historial de jugadas son conocidos por todos los participantes en todo momento), estados y acciones discretos, dinámica determinista, es decir, sin azar, y turnos que se alternan de forma secuencial. Con esta frontera el esfuerzo se concentra en el lenguaje de reglas, el intérprete y los algoritmos de búsqueda general, sin sumar la complejidad de los modelos probabilísticos ni de los conjuntos de información parcialmente observables.
+
+Elegimos dos casos que se parecen poco entre sí. El Gato (\textit{Tic-Tac-Toe}) es tan pequeño que puede revisarse entero, y por eso ahí es posible comprobar de forma analítica que el intérprete y las transiciones funcionan bien. El Ajedrez está en el otro extremo: con tantas jugadas posibles y una táctica tan profunda, muestra qué le pasa al motor cuando el problema es grande.
+
+También hay límites claros. El sistema no busca ganarle por fuerza táctica a motores comerciales muy especializados como Stockfish, que acumulan décadas de optimización específica en ensamblador, tablas de finales y grandes bases de aperturas \cite{LevyNewborn1991, Campbell2002DeepBlue}. Tampoco se propone replicar sistemas de aprendizaje por refuerzo profundo como AlphaZero o Student of Games, que necesitan clústeres de alto rendimiento y entrenamientos largos \cite{Silver2018AlphaZero, Schmid2023StudentOfGames}. Lo que interesa es la generalidad: mostrar que un mismo núcleo de software puede cargar, interpretar y jugar partidas coherentes y competitivas en distintos juegos con solo cambiar el archivo de reglas, en una estación de trabajo convencional.
 
