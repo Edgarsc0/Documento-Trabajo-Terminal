@@ -116,3 +116,252 @@ Elegimos dos casos que se parecen poco entre sí. El Gato (\textit{Tic-Tac-Toe})
 
 También hay límites claros. El sistema no busca ganarle por fuerza táctica a motores comerciales muy especializados como Stockfish, que acumulan décadas de optimización específica en ensamblador, tablas de finales y grandes bases de aperturas \cite{LevyNewborn1991, Campbell2002DeepBlue}. Tampoco se propone replicar sistemas de aprendizaje por refuerzo profundo como AlphaZero o Student of Games, que necesitan clústeres de alto rendimiento y entrenamientos largos \cite{Silver2018AlphaZero, Schmid2023StudentOfGames}. Lo que interesa es la generalidad: mostrar que un mismo núcleo de software puede cargar, interpretar y jugar partidas coherentes y competitivas en distintos juegos con solo cambiar el archivo de reglas, en una estación de trabajo convencional.
 
+\section{Metodología y planeación del desarrollo}
+\label{sec:metodologia_planeacion}
+
+La metodología y el calendario de trabajo se tomarán del protocolo del TT 2027-A178, en particular de sus apartados de productos esperados, metodología y cronograma \cite{ProtocoloTT2027A178}. Se conservarán las actividades, los responsables y los meses allí establecidos. Para facilitar el seguimiento, se propone complementar esa base con entregables verificables, dependencias y evidencias de aceptación. Estos criterios operativos se distinguirán de los compromisos del protocolo y no se interpretarán como resultados ya obtenidos.
+
+\subsection{Enfoque iterativo e incremental}
+
+El desarrollo se organizará mediante ciclos de trabajo en los que se definirá un objetivo acotado, se elaborará un entregable y se revisará su correspondencia con las reglas y el modelo formal del juego. Las observaciones de cada revisión se utilizarán para ajustar el siguiente ciclo. De esta manera, la integración del sistema se realizará de forma gradual y permitirá identificar inconsistencias entre la descripción de reglas, la interpretación del estado y la selección de acciones.
+
+En cada ciclo se propone registrar la versión del entregable, las comprobaciones realizadas y las limitaciones pendientes. Una actividad se considerará concluida únicamente cuando exista evidencia revisable de su cumplimiento. La presencia de una actividad en el cronograma, por sí sola, no acreditará su ejecución ni un porcentaje de avance.
+
+\subsection{Etapas de desarrollo}
+
+Se recuperarán las cuatro etapas metodológicas del protocolo \cite{ProtocoloTT2027A178}:
+
+\begin{enumerate}
+    \item \textbf{Diseño del lenguaje de descripción de reglas.} Se definirán la sintaxis, la gramática y la semántica necesarias para expresar estados, acciones, transiciones y condiciones terminales. La elección entre GDL completo, un subconjunto o un DSL propio deberá documentarse antes de cerrar la especificación.
+    \item \textbf{Construcción del módulo intérprete.} Se desarrollará y validará el procesamiento del archivo de reglas y la representación interna del juego. Se verificará que las consultas de legalidad, transición y terminalidad correspondan a la especificación definida.
+    \item \textbf{Implementación del agente.} Se desarrollará la toma de decisiones sobre el modelo que exponga el intérprete. La selección de algoritmos, las funciones heurísticas y los presupuestos de búsqueda se documentarán sin introducir reglas particulares de Gato o Ajedrez dentro del núcleo de decisión.
+    \item \textbf{Integración y validación experimental.} Se integrarán el intérprete, el modelo del juego y el agente. Se prepararán los archivos de los dos dominios y se ejecutarán los experimentos que se definan para comprobar legalidad, funcionamiento y desempeño bajo condiciones reproducibles.
+\end{enumerate}
+
+Estas etapas expresarán dependencias de trabajo y podrán revisitarse durante las iteraciones. No implicarán que se deba enumerar en memoria la totalidad del espacio de estados de Ajedrez ni que el agente seleccione una jugada óptima cuando la búsqueda sea limitada.
+
+\subsection{Productos esperados}
+
+Se conservarán los cinco productos establecidos en el protocolo \cite{ProtocoloTT2027A178}:
+
+\begin{enumerate}
+    \item \textbf{Código fuente del General Game Player:} incluirá el intérprete del archivo de reglas y el motor algorítmico del agente.
+    \item \textbf{Especificación formal del lenguaje de reglas:} documentará la sintaxis, la semántica y la gramática del formato adoptado.
+    \item \textbf{Archivos de entorno de Gato y Ajedrez:} describirán los dos dominios que se utilizarán en la validación, con las restricciones que se acuerden para cada uno.
+    \item \textbf{Reporte de pruebas y experimentos:} presentará los escenarios, las condiciones de ejecución, las métricas y los resultados efectivamente obtenidos.
+    \item \textbf{Manual de usuario:} explicará cómo ejecutar el agente y cómo escribir descripciones compatibles con el lenguaje especificado.
+\end{enumerate}
+
+\subsection{Matriz de seguimiento y evidencias propuestas}
+
+La Tabla \ref{tab:seguimiento_desarrollo} relaciona las etapas con sus entregables y dependencias. Las evidencias de aceptación son una propuesta operativa para el seguimiento; no se atribuyen literalmente al protocolo ni constituyen pruebas ya realizadas. Los umbrales cuantitativos se definirán al diseñar los experimentos.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
+\begin{longtable}{@{}L{1.3cm} L{2.7cm} L{2.7cm} L{2.2cm} L{\dimexpr\textwidth-8.9cm-8\tabcolsep\relax}@{}}
+    \caption{Matriz propuesta de seguimiento del desarrollo.}
+    \label{tab:seguimiento_desarrollo}\\
+    \toprule
+    \textbf{Etapa} & \textbf{Actividad} & \textbf{Entregable} & \textbf{Dependencia} & \textbf{Evidencia de aceptación propuesta} \\
+    \midrule
+    \endfirsthead
+    \multicolumn{5}{l}{\textit{Tabla \thetable{} (continuación).}}\\
+    \toprule
+    \textbf{Etapa} & \textbf{Actividad} & \textbf{Entregable} & \textbf{Dependencia} & \textbf{Evidencia de aceptación propuesta} \\
+    \midrule
+    \endhead
+    \midrule
+    \multicolumn{5}{r}{\textit{Continúa en la siguiente página.}}\\
+    \endfoot
+    \bottomrule
+    \endlastfoot
+
+    1. Lenguaje & Definir gramática y semántica de las reglas. & Especificación y ejemplos de descripciones. & Modelo formal y alcance de juegos definidos. & Se explicará cómo se representan estados, acciones, legalidad, transiciones, terminales y utilidades, sin reglas implícitas en el agente. \\
+    \addlinespace
+    2. Intérprete & Procesar reglas y construir el modelo consultable. & Intérprete y casos de comprobación. & Especificación de la etapa 1. & Se contrastarán las acciones legales, los estados sucesores y la terminalidad con casos cuyo resultado esperado se haya documentado previamente. \\
+    \addlinespace
+    3. Agente & Seleccionar acciones mediante búsqueda general. & Motor de decisión y registro de ejecución. & Consultas del intérprete verificadas. & Se comprobará que las acciones elegidas sean legales y que la decisión respete el presupuesto de búsqueda definido, registrando tiempo y nodos explorados. \\
+    \addlinespace
+    4. Validación & Integrar módulos y ejecutar experimentos. & Archivos de juegos, reporte y manual. & Integración funcional y diseño experimental definido. & Se documentará qué cambia al cargar otro juego; se verificará que el núcleo se conserve y se reportarán resultados, condiciones de ejecución y limitaciones. \\
+\end{longtable}
+\endgroup
+
+\subsection{Distribución del trabajo y calendario}
+
+Se mantendrá la distribución del protocolo: Sánchez Catarino Edgar se ocupará de la fundamentación del motor, la representación matemática, las reglas y la generación de movimientos, la implementación e integración del agente y el archivo de descripción de Ajedrez. Linares Villegas Gustavo se ocupará del estado del arte y la definición del problema, el diseño de árboles de búsqueda y la función heurística, los experimentos, el análisis estadístico y las conclusiones. Ambos participarán en la redacción de capítulos técnicos y manuales, la revisión final y la preparación de la defensa \cite{ProtocoloTT2027A178}.
+
+Los cronogramas individuales se presentan en el apartado de \hyperref[sec:cronogramas]{Cronogramas}, dentro de Anexos. Se conservará la secuencia de agosto a junio y el sombreado de las actividades del documento base, sin agregar años, fechas de entrega ni porcentajes de avance que no estén confirmados.
+
+Se deberá revisar una dependencia del calendario: los experimentos de Gustavo están previstos para febrero y marzo, mientras que el archivo de Ajedrez de Edgar está previsto para abril. Antes de ejecutar la validación, se determinará qué experimentos podrán realizarse con los recursos disponibles y cuáles requerirán ese archivo. Esta observación no modifica los periodos del protocolo ni supone que ya exista una descripción parcial de Ajedrez.
+
+\subsection{Diferencias documentadas y decisiones pendientes}
+
+La planeación conservará el protocolo como base. La Tabla \ref{tab:decisiones_planeacion} hará explícitas las diferencias con el texto actual y con el documento de mejora académica \cite{MejoraAcademicaTT2027A178}. Las recomendaciones de mejora no se presentarán como sustituciones aprobadas. La definición final de estos puntos deberá reflejarse de manera consistente en los objetivos, el alcance y el diseño experimental.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
+\begin{longtable}{@{}L{\dimexpr0.30\textwidth-2\tabcolsep\relax} L{\dimexpr0.36\textwidth-2\tabcolsep\relax} L{\dimexpr0.34\textwidth\relax}@{}}
+    \caption{Diferencias entre documentos y decisiones de planeación pendientes.}
+    \label{tab:decisiones_planeacion}\\
+    \toprule
+    \textbf{Protocolo} & \textbf{Documento actual o mejora propuesta} & \textbf{Decisión pendiente} \\
+    \midrule
+    \endfirsthead
+    \multicolumn{3}{l}{\textit{Tabla \thetable{} (continuación).}}\\
+    \toprule
+    \textbf{Protocolo} & \textbf{Documento actual o mejora propuesta} & \textbf{Decisión pendiente} \\
+    \midrule
+    \endhead
+    \midrule
+    \multicolumn{3}{r}{\textit{Continúa en la siguiente página.}}\\
+    \endfoot
+    \bottomrule
+    \endlastfoot
+
+    Describe autojuego y almacenamiento de pesos asociados al nivel de habilidad. & El documento actual enfatiza la búsqueda general; el aprendizaje profundo se trata como antecedente. & Precisar si se implementará aprendizaje, qué significarán los pesos y cómo se comprobará ese mecanismo. Autojuego no se asumirá equivalente a aprendizaje profundo. \\
+    \addlinespace
+    Propone un oponente humano que reproduzca movimientos históricos de un gran maestro. & El objetivo específico actual propone partidas contra un motor con ELO configurable. & Definir el experimento de Ajedrez, el oponente, las posiciones o partidas y las métricas antes de ejecutar pruebas. \\
+    \addlinespace
+    Incluye archivos de Gato y Ajedrez y experimentos en ambos dominios. & La mejora académica recomienda Gato como caso funcional completo y Ajedrez mediante escenarios controlados. & Delimitar las reglas y escenarios de Ajedrez y documentar cualquier ajuste respecto del protocolo. La recomendación no se considerará aprobada por su sola inclusión. \\
+    \addlinespace
+    Plantea diseñar un lenguaje de dominio específico y documentar su gramática y semántica. & El Marco Teórico contempla GDL completo, un subconjunto o un DSL propio inspirado en lenguajes existentes. & Seleccionar y justificar el lenguaje adoptado, su expresividad y sus restricciones. \\
+\end{longtable}
+\endgroup
+
+Además, se deberán seleccionar los algoritmos de decisión y sus criterios de evaluación. Minimax, poda alfa-beta y MCTS/UCT se mantendrán como alternativas fundamentadas; su presencia en el Marco Teórico no implicará que todos deban implementarse. Las decisiones técnicas se documentarán antes de cerrar el diseño y no se fijará aquí una tecnología de implementación.
+
+\subsection{Planeación de la primera etapa del Trabajo Terminal}
+\label{subsec:planeacion_tt1}
+
+Para TT1 se propone concentrar el trabajo en la revisión, la investigación, la planeación y la preparación del análisis y del diseño del sistema. Los cinco productos recuperados del protocolo corresponden al proyecto completo; en esta primera etapa se establecerán las bases documentales que orientarán su construcción y validación posterior. La evidencia de avance estará constituida por documentos, modelos y decisiones justificadas que puedan revisarse durante las iteraciones.
+
+Esta planeación complementará la metodología iterativa e incremental mediante ciclos semanales. Se mantendrán las actividades y los periodos mensuales del protocolo como referencia general \cite{ProtocoloTT2027A178}; el detalle semanal se utilizará para organizar el trabajo dentro de esos periodos. La duración total de TT1 y las fechas de revisión se incorporarán cuando estén confirmadas. Los hitos de esta propuesta no representan entregas ya realizadas ni sustituyen los acuerdos de seguimiento académico.
+
+\subsection{Organización de los ciclos semanales}
+
+Cada semana se organizará en tres momentos de trabajo:
+
+\begin{enumerate}
+    \item \textbf{Planeación del ciclo.} Se seleccionará un objetivo concreto a partir del hito en curso y de las observaciones de la revisión anterior. Para cada actividad se identificarán el responsable, el entregable esperado, sus dependencias y la evidencia que permitirá revisarla. Las tareas se distribuirán tomando como base las responsabilidades del protocolo y se acordará una revisión cruzada entre ambos integrantes.
+    \item \textbf{Desarrollo del entregable.} Se realizarán las consultas, comparaciones o elaboraciones documentales necesarias. Se registrarán las fuentes utilizadas, los supuestos y las decisiones abiertas. Cuando una tarea dependa de información aún no definida, se separará la parte que pueda avanzar de aquella que requiera resolver la dependencia.
+    \item \textbf{Revisión y ajuste.} Al cierre de la semana se contrastará el entregable con la evidencia acordada. Se registrarán las observaciones, las correcciones necesarias y las actividades que continuarán en el siguiente ciclo. El paso a un nuevo hito se justificará por los productos revisados y por la atención de sus dependencias.
+\end{enumerate}
+
+Un hito podrá abarcar varias semanas y una semana podrá incluir correcciones de un hito anterior. Se propone numerar los ciclos de forma consecutiva para relacionar las actividades con sus versiones y revisiones. Esta numeración servirá para el seguimiento interno; su correspondencia con fechas se establecerá al acordar el calendario de TT1.
+
+\subsection{Hitos documentales y evidencias de TT1}
+\label{subsec:hitos_tt1}
+
+La Tabla \ref{tab:hitos_tt1} presenta una secuencia propuesta de hitos. Su finalidad será relacionar la investigación con las decisiones de análisis, diseño y validación. Los entregables indicados se elaborarán durante el trabajo de TT1; su inclusión en la tabla no acreditará que los capítulos correspondientes estén desarrollados.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
+\begin{longtable}{@{}L{2.5cm} L{5.0cm} L{\dimexpr\textwidth-7.5cm-4\tabcolsep\relax}@{}}
+    \caption{Hitos propuestos para la planeación de TT1.}
+    \label{tab:hitos_tt1}\\
+    \toprule
+    \textbf{Hito} & \textbf{Entregable y dependencia} & \textbf{Evidencia de revisión propuesta} \\
+    \midrule
+    \endfirsthead
+    \multicolumn{3}{l}{\textit{Tabla \thetable{} (continuación).}}\\
+    \toprule
+    \textbf{Hito} & \textbf{Entregable y dependencia} & \textbf{Evidencia de revisión propuesta} \\
+    \midrule
+    \endhead
+    \midrule
+    \multicolumn{3}{r}{\textit{Continúa en la siguiente página.}}\\
+    \endfoot
+    \bottomrule
+    \endlastfoot
+
+    H1. Revisión y delimitación & Síntesis de antecedentes, comparación de alternativas y registro de alcance y preguntas abiertas. Se partirá del protocolo y de la investigación documental. & Cada afirmación central contará con una fuente identificable; se distinguirán los compromisos del protocolo, las recomendaciones y las decisiones pendientes. \\
+    \addlinespace
+    H2. Preparación del análisis & Relación de requisitos, restricciones y casos de uso previstos. Dependerá de la delimitación del hito H1. & Los requisitos tendrán un identificador y una forma prevista de comprobación; se relacionarán con los objetivos y se explicitarán las exclusiones. \\
+    \addlinespace
+    H3. Preparación del diseño & Propuesta del lenguaje, representación del juego, arquitectura y responsabilidades de los componentes. Dependerá de los requisitos del hito H2. & Se justificará la comparación de alternativas y se mostrará cómo las reglas externas permitirán consultar legalidad, transiciones, terminalidad y utilidades. Las decisiones abiertas quedarán señaladas. \\
+    \addlinespace
+    H4. Planeación de la validación & Propuesta de casos de comprobación, condiciones de comparación y registro de riesgos y dependencias. Se apoyará en H2 y H3 y retroalimentará sus decisiones. & Cada comprobación tendrá un propósito y una evidencia esperada. Se distinguirán los casos funcionales de Gato de las opciones de evaluación de Ajedrez aún por acordar. \\
+    \addlinespace
+    H5. Integración y revisión de TT1 & Versión integrada del documento y relación de observaciones atendidas y pendientes. Requerirá revisar los productos de H1 a H4. & Se comprobará la trazabilidad entre objetivos, requisitos, diseño y validación prevista; cada pendiente tendrá responsable y una acción de seguimiento. \\
+\end{longtable}
+\endgroup
+
+La secuencia permitirá revisar el análisis y el diseño a partir de lo aprendido en semanas posteriores. Si una observación modifica el alcance de un entregable, se registrarán su motivo y sus efectos sobre las tareas dependientes antes de actualizar la planeación semanal.
+
+\subsection{Criterios para revisar la viabilidad}
+
+La viabilidad de la primera etapa se revisará a partir de la delimitación del trabajo, las dependencias entre entregables y la evidencia obtenida en cada ciclo. Se propone considerar los siguientes criterios:
+
+\begin{itemize}
+    \item \textbf{Coherencia académica.} La investigación deberá aportar criterios para el análisis y el diseño. Se verificará que las alternativas estudiadas respondan al problema del desacoplamiento entre reglas y motor de decisión y que sus restricciones queden identificadas.
+    \item \textbf{Factibilidad del diseño propuesto.} Se revisará que la representación prevista permita expresar los elementos del modelo formal y que cada componente tenga responsabilidades y consultas definidas. Las limitaciones identificadas se incorporarán al diseño y al registro de riesgos antes de comprometer la construcción correspondiente.
+    \item \textbf{Organización temporal.} Al inicio de cada semana se acordará un entregable acotado. Si una actividad resulta demasiado amplia para su revisión al cierre del ciclo, se dividirá en productos parciales con dependencias explícitas. El avance observado servirá para ajustar los ciclos siguientes.
+    \item \textbf{Continuidad del proyecto.} Los productos de TT1 deberán permitir identificar qué se construirá después, qué decisiones lo sustentan y cómo se comprobará. Los pendientes que condicionen esa continuidad se conservarán visibles y tendrán una acción prevista.
+\end{itemize}
+
+La evidencia para revisar estos criterios estará formada por los entregables de la Tabla \ref{tab:hitos_tt1}, las revisiones semanales y el registro de decisiones. La conclusión sobre viabilidad se actualizará con esas evidencias; la existencia del cronograma será una referencia de organización y no una comprobación suficiente de cumplimiento.
+
+\subsection{Riesgos y medidas de seguimiento}
+\label{subsec:riesgos_planeacion}
+
+Se propone mantener el registro de la Tabla \ref{tab:riesgos_tt1}. Los riesgos se revisarán al iniciar y cerrar cada ciclo semanal. Las señales descritas permitirán identificar cuándo será necesario actuar; las medidas deberán quedar relacionadas con un responsable y una actividad del ciclo en que se atiendan.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
+\begin{longtable}{@{}L{3.1cm} L{3.8cm} L{\dimexpr\textwidth-6.9cm-4\tabcolsep\relax}@{}}
+    \caption{Registro inicial propuesto de riesgos de planeación.}
+    \label{tab:riesgos_tt1}\\
+    \toprule
+    \textbf{Riesgo} & \textbf{Señal para su revisión} & \textbf{Medida prevista} \\
+    \midrule
+    \endfirsthead
+    \multicolumn{3}{l}{\textit{Tabla \thetable{} (continuación).}}\\
+    \toprule
+    \textbf{Riesgo} & \textbf{Señal para su revisión} & \textbf{Medida prevista} \\
+    \midrule
+    \endhead
+    \midrule
+    \multicolumn{3}{r}{\textit{Continúa en la siguiente página.}}\\
+    \endfoot
+    \bottomrule
+    \endlastfoot
+
+    R1. Indefinición del lenguaje de reglas & Las alternativas estudiadas no permiten justificar una especificación común para los juegos previstos. & Comparar expresividad, semántica y complejidad de interpretación; documentar la decisión o la restricción que deba revisarse antes de cerrar H3. \\
+    \addlinespace
+    R2. Evaluación de Ajedrez sin acuerdo & El oponente, los casos o las métricas dependen de supuestos distintos entre documentos. & Preparar una ficha de decisión con las alternativas y sus implicaciones. Registrar el acuerdo antes de ejecutar las pruebas que dependan de él, conservando identificada la diferencia con el protocolo. \\
+    \addlinespace
+    R3. Dependencia temporal de experimentos & Las pruebas programadas para febrero y marzo requieren el archivo de Ajedrez previsto para abril. & Identificar qué pruebas necesitan ese archivo y revisar la secuencia con el director. Registrar cualquier ajuste acordado de manera explícita, conservando el calendario original como antecedente. \\
+    \addlinespace
+    R4. Entregables semanales demasiado amplios & Al cierre del ciclo no existe un producto que pueda revisarse de forma independiente. & Dividir la actividad, acordar la evidencia del producto parcial y trasladar el trabajo restante al ciclo siguiente, indicando sus dependencias. \\
+    \addlinespace
+    R5. Inconsistencias entre aportaciones & Los requisitos, modelos o términos de distintos apartados describen comportamientos incompatibles. & Realizar revisión cruzada, registrar observaciones y comprobar la trazabilidad antes de integrar la versión correspondiente a H5. \\
+    \addlinespace
+    R6. Ampliación del alcance & Una nueva propuesta exige funciones o dominios adicionales a los previstos. & Revisar su relación con los objetivos, su efecto en los hitos y las dependencias. Incorporarla a la planeación solo después de documentar la decisión y el ajuste necesario. \\
+\end{longtable}
+\endgroup
+
+\subsection{Registro de avance y decisiones}
+
+Para cada ciclo se propone conservar una ficha con el número de semana, el hito relacionado, las actividades, el responsable, la versión del entregable, la evidencia de revisión y las observaciones. Cada actividad se registrará como pendiente, en desarrollo, en revisión o atendida. El estado \textit{atendida} requerirá vincular la evidencia correspondiente y registrar el resultado de su revisión; no se asignarán porcentajes de avance sin un criterio previamente definido.
+
+Las decisiones sobre el lenguaje, los algoritmos, el mecanismo de autojuego o aprendizaje y la evaluación de Ajedrez se registrarán con la alternativa analizada, su justificación, los apartados afectados y la revisión en que se acuerden. Mientras una decisión continúe abierta, se indicará qué tareas podrán avanzar y cuáles dependerán de resolverla. De esta forma, el seguimiento semanal permitirá actualizar la planeación sin presentar como concluidos los productos ni como aprobadas las propuestas pendientes.
