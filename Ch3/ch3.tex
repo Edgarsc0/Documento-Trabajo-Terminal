@@ -984,7 +984,7 @@ Esa integración se organiza en un flujo desacoplado, que muestra la Figura \ref
 % Fila superior
 \node[extfile] (rules) {\textbf{Archivo de Reglas}\\(DSL / GDL externo)};
 \node[coremod, right=of rules] (parser) {\textbf{Intérprete Sintáctico}\\Validación y análisis léxico};
-\node[datamod, right=of parser] (model) {\textbf{Modelo en Memoria $\Gamma$}\\$R, S, A, T, L, U, s_0, F$};
+\node[datamod, right=of parser] (model) {\textbf{Modelo en Memoria $\Gamma$}\\$R, S, A, T, L, \{G_i\}, s_0, F$};
 
 % Fila inferior
 \node[actmod, below=1.3cm of rules] (action) {\textbf{Acción Seleccionada $\mathbf{a}^*$}\\Ejecución en tablero};
@@ -1000,7 +1000,7 @@ Esa integración se organiza en un flujo desacoplado, que muestra la Figura \ref
 \node[draw=blue!50!black, dashed, rounded corners=5pt, line width=0.6pt, fit=(parser) (model) (gen) (engine), inner sep=7pt, label={[font=\footnotesize\bfseries\color{blue!80!black}]above:Arquitectura del General Game Player (agnóstica al dominio)}] (box_ggp) {};
 
 \end{tikzpicture}
-\caption{Flujo conceptual de ejecución y arquitectura desacoplada del General Game Player.}
+\caption{Flujo conceptual de ejecución y arquitectura desacoplada del General Game Player. El flujo detallado se presenta en la Figura~\ref{fig:arquitectura_diseno}.}
 \label{fig:flujo_arquitectura_ggp}
 \end{figure}
 

@@ -1,1 +1,61 @@
 \chapter{Diseño}
+
+\section{Arquitectura conceptual propuesta}
+\label{sec:arquitectura_propuesta}
+
+La arquitectura de la Figura~\ref{fig:arquitectura_diseno} separará reglas, interpretación, representación, generación de sucesores y decisión mediante el modelo formal de la Sección~\ref{sec:modelo_formal_juego}. El contorno delimitará el núcleo reutilizable; las entradas y la coordinación de la partida quedarán fuera. Se trata de un diseño conceptual, sin fijar tecnología ni acreditar módulos implementados.
+
+\begin{figure}[p]
+\centering
+\begin{tikzpicture}[
+    bloque/.style={draw, rounded corners=3pt, align=center, text width=3.15cm, minimum height=1.15cm, inner sep=5pt, font=\small},
+    externo/.style={bloque, fill=green!7, draw=green!45!black},
+    interno/.style={bloque, fill=blue!5, draw=blue!55!black},
+    flecha/.style={-{Stealth}, thick, draw=gray!80!black},
+    consulta/.style={-{Stealth}, thick, draw=blue!65!black},
+    etiqueta/.style={font=\footnotesize, align=center, fill=white, inner sep=2pt}
+]
+\node[externo] (reglas) at (0,0) {\textbf{Reglas externas}\\Gato o Ajedrez\\GDL o subconjunto\\o DSL por definir};
+\node[interno] (interprete) at (5.2,0) {\textbf{Intérprete}\\Análisis léxico\\y sintáctico\\Validación\\de restricciones};
+\node[interno] (modelo) at (10.4,0) {\textbf{Modelo interno $\Gamma$}\\Reglas y $s_0$\\Representación\\de estados};
+
+\node[externo] (accion) at (0,-4.2) {\textbf{Acción elegida $a_i^*$}\\Acción legal para el rol\\activo, si $s\notin F$};
+\node[interno, fill=orange!9] (motor) at (5.2,-4.2) {\textbf{Motor de decisión}\\Minimax / alfa-beta\\o MCTS / UCT\\(por seleccionar)\\Búsqueda si $s\notin F$};
+\node[interno] (generador) at (10.4,-4.2) {\textbf{Consultas y generador}\\Acciones $L_i(s)$\\Sucesores $T(s,\mathbf a)$\\Terminalidad $s\in F$\\Utilidades $G_i(s)$};
+
+\node[externo] (aplicar) at (0,-8.8) {\textbf{Aplicación en la partida}\\Usar $T(s,\mathbf a^*)$\\Actualizar turno};
+\node[externo] (estado) at (5.2,-8.8) {\textbf{Entrada por turno}\\Estado actual $s$\\Rol $r_i$ y presupuesto\\Inicialmente $s=s_0$};
+\node[externo] (fin) at (10.4,-8.8) {\textbf{Fin de la partida}\\Si el estado actual $s\in F$\\Reportar $G_i(s)$\\Sin continuar la búsqueda};
+\node[externo, fill=red!5, draw=red!45!black] (error) at (0,2.35) {\textbf{Diagnóstico}\\Descripción rechazada};
+
+\begin{scope}[on background layer]
+\node[draw=blue!55!black, dashed, rounded corners=5pt, fit=(interprete) (modelo) (motor) (generador), inner sep=9pt] (nucleo) {};
+\end{scope}
+\node[anchor=south east, font=\small\bfseries, text=blue!55!black] at ([yshift=3pt]nucleo.north east) {Núcleo reutilizable entre juegos};
+
+\draw[flecha] (reglas) -- node[etiqueta, text width=1.25cm] {texto de reglas} (interprete);
+\draw[flecha] (interprete) -- node[etiqueta, text width=1.25cm] {reglas\\válidas} (modelo);
+\draw[flecha] (interprete.north) -- (5.2,2.35) -- node[etiqueta, above] {rechazo} (error.east);
+\draw[flecha] (modelo) -- node[etiqueta, left, text width=2.0cm] {reglas\\consultables} (generador);
+\draw[consulta] ([yshift=5pt]motor.east) -- node[etiqueta, above] {solicitudes} ([yshift=5pt]generador.west);
+\draw[consulta] ([yshift=-5pt]generador.west) -- node[etiqueta, below] {resultados} ([yshift=-5pt]motor.east);
+\draw[flecha] (motor) -- node[etiqueta] {elige} (accion);
+\draw[flecha] (accion) -- node[etiqueta, right, text width=1.65cm] {solo la acción elegida} (aplicar);
+\draw[flecha] (aplicar) -- node[etiqueta, text width=1.25cm] {estado sucesor} (estado);
+\draw[flecha] (estado) -- (motor);
+\draw[flecha] (motor.south east) -- (7.6,-6.5) -- node[etiqueta, above] {$s\in F$} (fin.north west);
+\end{tikzpicture}
+\caption{Arquitectura propuesta: carga de reglas, consultas de búsqueda y actualización de la partida. Las dos filas principales forman un único flujo; las entradas, salidas y condiciones de terminación se muestran alrededor del núcleo.}
+\label{fig:arquitectura_diseno}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Descripción externa.} Cada archivo expresará roles, estado inicial, acciones, legalidad, transiciones, terminalidad y utilidades. La elección del lenguaje requerirá justificar expresividad, restricciones y costo de interpretación.
+    \item \textbf{Intérprete.} Analizará la estructura y las restricciones semánticas acordadas. La descripción aceptada originará el modelo; el rechazo producirá un diagnóstico y detendrá la carga.
+    \item \textbf{Modelo y generador.} El modelo conservará las reglas y la representación de estados; el generador resolverá consultas y construirá sucesores a solicitud del motor. La carga proporcionará $s_0$, sin materializar por anticipado todo el espacio de Ajedrez.
+    \item \textbf{Motor y ciclo de decisión.} Recibirá estado actual, rol y presupuesto. Si el estado actual es terminal, reportará utilidades y finalizará la partida; en otro caso explorará sucesores y elegirá una acción legal. Los terminales hipotéticos solo servirán para valorar ramas.
+\end{enumerate}
+
+La acción elegida se aplicará mediante $T$ del mismo modelo, obteniendo el estado del siguiente turno. Para formar $\mathbf a^*$ se conservará la convención de acciones inactivas. Esta transición real se distinguirá de los sucesores hipotéticos de la búsqueda.
+
+Se estudiarán Minimax con alfa-beta y MCTS/UCT, con heurísticas generales y selección pendiente. El núcleo conservará sus componentes al cambiar el archivo, sin valores de piezas ni procedimientos particulares del dominio. La evaluación de la Sección~\ref{subsec:evaluacion_propuesta} registrará contadores y contrastará resultados con referencias externas, sin proporcionar sus respuestas al agente.

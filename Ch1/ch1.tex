@@ -191,6 +191,76 @@ La Tabla \ref{tab:seguimiento_desarrollo} relaciona las etapas con sus entregabl
 \end{longtable}
 \endgroup
 
+\subsection{Diseño de la evaluación: métricas y muestra}
+\label{subsec:evaluacion_propuesta}
+
+Se propone evaluar la corrección de las reglas, la calidad de decisión, el costo de búsqueda y la generalidad operativa de la arquitectura de la Sección~\ref{sec:arquitectura_propuesta}. En TT1 se documentarán los casos, las referencias de comparación y el procedimiento; las mediciones se realizarán durante la validación posterior. Este diseño complementará los objetivos existentes y mantendrá pendiente el acuerdo sobre el experimento definitivo de Ajedrez.
+
+\subsubsection{Métricas y procedimiento de medición}
+
+Para cada comprobación se preparará una entrada y un resultado esperado obtenido de una referencia independiente. Para los indicadores de acierto de movimientos, transiciones, terminalidad, utilidad y decisión se utilizará la proporción
+\begin{equation}
+    P_k = 100\,\frac{C_k}{N_k}, \qquad N_k > 0,
+\end{equation}
+donde $N_k$ será el número de casos evaluados del indicador $k$ y $C_k$ el número de coincidencias. Los denominadores se reportarán por separado: posiciones, pares estado--acción, estados terminales o decisiones, según corresponda. El tiempo, la profundidad y los nodos se expresarán en sus unidades propias; la generalidad se comprobará mediante evidencia de conservación del núcleo. La Tabla~\ref{tab:metricas_propuestas} precisa cada comprobación.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
+\begin{longtable}{@{}L{3.0cm} L{\dimexpr\textwidth-3.0cm-2\tabcolsep\relax}@{}}
+    \caption{Métricas y procedimientos propuestos de evaluación.}
+    \label{tab:metricas_propuestas}\\
+    \toprule
+    \textbf{Aspecto} & \textbf{Procedimiento e indicador} \\
+    \midrule
+    \endfirsthead
+    \multicolumn{2}{l}{\textit{Tabla \thetable{} (continuación).}}\\
+    \toprule
+    \textbf{Aspecto} & \textbf{Procedimiento e indicador} \\
+    \midrule
+    \endhead
+    \midrule
+    \multicolumn{2}{r}{\textit{Continúa en la siguiente página.}}\\
+    \endfoot
+    \bottomrule
+    \endlastfoot
+
+    Movimientos legales & Porcentaje de posiciones cuyo conjunto completo de acciones coincida con la referencia. Se registrarán por separado las acciones ilegales generadas y las legales omitidas; igualar únicamente la cantidad no será suficiente. \\
+    \addlinespace
+    Transiciones & Porcentaje de pares estado--acción cuyo sucesor coincida con el esperado. Se compararán la configuración, el turno y los datos adicionales exigidos por las reglas, incluidos los antecedentes pertinentes. \\
+    \addlinespace
+    Terminalidad y utilidad & Dos porcentajes independientes: clasificación correcta de terminalidad sobre todos los estados evaluados y asignación correcta del vector de utilidades sobre los estados terminales. \\
+    \addlinespace
+    Calidad de decisión & En Gato, porcentaje de decisiones pertenecientes al conjunto óptimo calculado por un solucionador independiente con Minimax. En Ajedrez, porcentaje de aciertos de primera jugada: la acción inicial deberá pertenecer al conjunto de respuestas aceptadas y entregarse dentro del presupuesto acordado. Las acciones inválidas y los tiempos agotados contarán como fallos. \\
+    \addlinespace
+    Costo de búsqueda & Tiempo por decisión en milisegundos, resumido mediante mediana y percentil 95; número de nodos expandidos y profundidad alcanzada en medias jugadas. Las simulaciones de MCTS se reportarán por separado. Se medirá desde la solicitud de acción sobre un estado disponible hasta la respuesta; la carga del archivo se registrará aparte. \\
+    \addlinespace
+    Generalidad operativa & Se ejecutarán ambos dominios con la misma versión del intérprete y del motor. Se registrarán los componentes modificados y se revisará que las reglas particulares permanezcan en las descripciones externas. El criterio será conservar el núcleo al cambiar de juego y verificar su funcionamiento. \\
+\end{longtable}
+\endgroup
+
+Para Ajedrez se podrá utilizar una implementación independiente, como \textit{python-chess}, para contrastar movimientos, sucesores y condiciones terminales \cite{PythonChessCore}. Su uso como referencia de pruebas no sustituirá las consultas del intérprete propuesto. Se fijarán su versión y las reglas comparadas. Se propone exigir coincidencia del 100\,\% en los casos funcionales incluidos; esta condición no demostrará corrección fuera del banco. Los umbrales de calidad y tiempo se justificarán después del piloto.
+
+\subsubsection{Selección de la muestra y de los casos}
+
+En Gato se propone una revisión exhaustiva de los estados alcanzables desde el tablero vacío, con X al inicio y detención al aparecer una victoria o un empate. Se incluirán los estados terminales para comprobar sus resultados y los no terminales para evaluar decisiones. Se conservarán las configuraciones simétricas como casos distintos y se verificará la enumeración mediante una referencia independiente.
+
+Para Ajedrez se propone un banco piloto de \textbf{60 posiciones funcionales}, organizado inicialmente en seis familias de diez casos: movimientos y capturas, jaques y clavadas, enroques, promociones, captura al paso y terminalidad. Cada caso tendrá una familia principal; se cubrirán ambos colores y situaciones que admitan o impidan la acción. La composición y el tamaño se ajustarán cuando se acuerden las reglas soportadas.
+
+Se propone además reservar \textbf{30 problemas tácticos para evaluar la primera jugada}, seleccionados por tema y dificultad, con respuestas verificadas. Una fuente posible será la base abierta de Lichess \cite{LichessPuzzles}; se preparará la posición aplicando a su FEN el primer movimiento proporcionado, pues la solución comienza con el segundo. Se documentará por caso el conjunto de primeras jugadas aceptadas, incluidas las alternativas válidas. El piloto y los ajustes de parámetros utilizarán casos distintos de estos 30. El indicador medirá el acierto inicial, sin atribuir la resolución de la secuencia completa.
+
+Las cantidades de 60 y 30 son propuestas exploratorias de cobertura, no tamaños que garanticen representatividad estadística de todo Ajedrez. Cada caso conservará identificador, procedencia, posición, regla evaluada y resultado esperado. Las repeticiones de una misma posición se contabilizarán como ejecuciones y no como nuevas posiciones.
+
+\subsubsection{Condiciones de comparación y registro}
+
+Las configuraciones se compararán sobre los mismos casos y bajo un presupuesto de búsqueda acordado. Se documentarán el algoritmo, los parámetros, la versión de las reglas, los criterios de parada y el tratamiento de los estados terminales. Se contará una expansión cuando se generen sucesores de un nodo; las expansiones y las simulaciones tendrán contadores separados. Si se utiliza aleatoriedad, se repetirán las ejecuciones con semillas registradas; el número definitivo de repeticiones se justificará con la variabilidad observada en el piloto.
+
+Los registros incluirán caso, configuración, repetición, acción elegida, resultado de la comprobación, tiempo, nodos y motivo de terminación. En calidad de decisión, cada combinación de posición y ejecución será un ensayo; se informarán tanto el número de posiciones distintas como el de ensayos por configuración. Los fallos y agotamientos de tiempo permanecerán en el informe, sin excluirlos del denominador de decisiones. La evidencia de generalidad se limitará a los dominios y reglas efectivamente evaluados.
+
 \subsection{Distribución del trabajo y calendario}
 
 Se mantendrá la distribución del protocolo: Sánchez Catarino Edgar se ocupará de la fundamentación del motor, la representación matemática, las reglas y la generación de movimientos, la implementación e integración del agente y el archivo de descripción de Ajedrez. Linares Villegas Gustavo se ocupará del estado del arte y la definición del problema, el diseño de árboles de búsqueda y la función heurística, los experimentos, el análisis estadístico y las conclusiones. Ambos participarán en la redacción de capítulos técnicos y manuales, la revisión final y la preparación de la defensa \cite{ProtocoloTT2027A178}.
