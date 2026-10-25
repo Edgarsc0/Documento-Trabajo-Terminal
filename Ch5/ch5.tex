@@ -59,3 +59,58 @@ La arquitectura de la Figura~\ref{fig:arquitectura_diseno} separará reglas, int
 La acción elegida se aplicará mediante $T$ del mismo modelo, obteniendo el estado del siguiente turno. Para formar $\mathbf a^*$ se conservará la convención de acciones inactivas. Esta transición real se distinguirá de los sucesores hipotéticos de la búsqueda.
 
 Se estudiarán Minimax con alfa-beta y MCTS/UCT, con heurísticas generales y selección pendiente. El núcleo conservará sus componentes al cambiar el archivo, sin valores de piezas ni procedimientos particulares del dominio. La evaluación de la Sección~\ref{subsec:evaluacion_propuesta} registrará contadores y contrastará resultados con referencias externas, sin proporcionar sus respuestas al agente.
+
+\section{Prototipos de interfaz aprobados}
+\label{sec:prototipos-interfaz}
+
+Las Figuras~\ref{fig:mockup-reglas}--\ref{fig:mockup-resultados} documentan prototipos visuales aprobados para comunicar cómo podría organizarse la interacción con el agente. Retoman los límites de responsabilidad de la arquitectura de la Figura~\ref{fig:arquitectura_diseno}: la interfaz recibe una descripción externa, muestra el estado de una partida y presenta la preparación o el reporte de una evaluación. No describen una interfaz implementada ni fijan una tecnología, la sintaxis definitiva de las reglas o el algoritmo de decisión. Los controles, estados y valores visibles son ilustrativos y no constituyen evidencia de ejecución.
+
+\paragraph{Carga y validación de reglas.}
+La Figura~\ref{fig:mockup-reglas} ilustra la entrada de una descripción externa mediante un archivo de ejemplo de Gato. La vista semántica hace explícitos los roles, el estado inicial, las acciones y la condición de fin; el panel lateral representa el resultado que se esperaría de validar roles, transición, terminalidad y utilidades. La leyenda ``descripción aceptada'' es un estado propuesto de la interfaz, no una afirmación de que exista ya un intérprete ni de que se haya elegido GDL, un subconjunto de GDL o un DSL propio.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth,height=0.80\textheight,keepaspectratio]{mockups/mockup_reglas.png}
+    \caption{Prototipo aprobado de carga y revisión de una descripción externa de Gato. La validación y el contenido del archivo son ilustrativos; la sintaxis del lenguaje permanece por definir.}
+    \label{fig:mockup-reglas}
+\end{figure}
+
+\paragraph{Partida de Gato.}
+La Figura~\ref{fig:mockup-gato} propone una vista para una partida entre dos agentes. Presenta el tablero, el turno activo, las acciones legales, un historial y el espacio reservado para la siguiente decisión. Con ello separa la visualización de la partida de las consultas que el motor deberá resolver sobre legalidad y transición. La posición pausada y sus acciones se muestran solo como ejemplo de interacción, sin acreditar que se generen a partir de reglas ejecutables.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth,height=0.80\textheight,keepaspectratio]{mockups/mockup_gato.png}
+    \caption{Prototipo aprobado de una partida de Gato entre agentes. El tablero, historial, acciones legales y próxima decisión representan un estado ilustrativo.}
+    \label{fig:mockup-gato}
+\end{figure}
+
+\paragraph{Partida de Ajedrez.}
+La Figura~\ref{fig:mockup-ajedrez} reutiliza la misma organización para Ajedrez: tablero, turno, acciones legales, historial y próxima decisión. Su propósito es hacer visible que la interfaz no queda ligada a la geometría ni a las piezas de un único dominio; el cambio de juego corresponderá a la descripción externa y al modelo interno. La posición inicial y las veinte acciones mostradas son datos visuales de ejemplo, no una prueba de que el agente ya soporte las reglas completas de Ajedrez.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth,height=0.80\textheight,keepaspectratio]{mockups/mockup_chess.png}
+    \caption{Prototipo aprobado de una partida de Ajedrez entre agentes. La posición y las acciones son ilustrativas.}
+    \label{fig:mockup-ajedrez}
+\end{figure}
+
+\paragraph{Preparación de la evaluación.}
+La Figura~\ref{fig:mockup-evaluacion} representa la configuración previa de una comprobación de primera jugada en Ajedrez. Distingue el banco de casos, las condiciones de ejecución y el criterio de comparación, de acuerdo con la propuesta de métricas de la Sección~\ref{subsec:evaluacion_propuesta}. Las 30 posiciones, una ejecución por posición y el presupuesto de 1000 ms son valores de ejemplo; el tamaño definitivo del banco, las repeticiones, el presupuesto y el protocolo de Ajedrez continúan sujetos a acuerdo. La indicación de que las respuestas pertenecen al evaluador preserva la separación entre referencia independiente y agente evaluado.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth,height=0.80\textheight,keepaspectratio]{mockups/mockup_evaluacion.png}
+    \caption{Prototipo aprobado de preparación de una evaluación táctica de primera jugada en Ajedrez. Las cantidades, el presupuesto y el estado de ejecución son ilustrativos y no describen un experimento realizado.}
+    \label{fig:mockup-evaluacion}
+\end{figure}
+
+\paragraph{Resultados de evaluación.}
+La Figura~\ref{fig:mockup-resultados} propone cómo reportar los indicadores definidos para la validación: acierto, tiempo por decisión, nodos expandidos, posiciones distintas, ejecuciones y detalle por caso. También conserva el motivo de terminación para que los tiempos agotados y otras incidencias permanezcan visibles en el registro. Los valores numéricos, los movimientos y el resumen de 4 de 5 casos son datos simulados; la figura no informa resultados experimentales ni selecciona un algoritmo de búsqueda.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth,height=0.80\textheight,keepaspectratio]{mockups/mockup_resultados.png}
+    \caption{Prototipo aprobado del reporte de resultados de una evaluación. Las métricas y el detalle por caso muestran datos simulados, sin atribuir una ejecución real ni desempeño al agente.}
+    \label{fig:mockup-resultados}
+\end{figure}
