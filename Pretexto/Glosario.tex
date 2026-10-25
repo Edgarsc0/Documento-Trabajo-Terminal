@@ -5,6 +5,7 @@
 \chapter*{Glosario}
 
 \addcontentsline{toc}{chapter}{Glosario}
+\markboth{Glosario}{Glosario}
 
 \begingroup
 \small
@@ -62,7 +63,7 @@
 
     Conjunto de información de Kuhn
                      &
-    Conjunto de estados que un participante no puede distinguir entre sí; reúne todas las configuraciones del entorno compatibles con lo que observa.
+    Conjunto de nodos de decisión o historias que un jugador no distingue con la información recibida hasta ese momento. No equivale automáticamente a una clase de estados con igual observación actual.
     \\
 
     Criterio de selección UCT
@@ -75,9 +76,9 @@
     Especificación externa y declarativa que define los roles, el estado inicial, las acciones legales, las transiciones, los estados terminales y las recompensas, sin programar esas reglas dentro del motor del agente.
     \\
 
-    Distancia geodésica
+    Distancia dirigida entre estados
                      &
-    Número mínimo de transiciones legales conjuntas necesarias para ir de una configuración origen a una configuración destino en el grafo de estados del juego.
+    Longitud mínima de una trayectoria legal dirigida entre estados. Vale cero de un estado a sí mismo e infinito si no hay trayectoria; no es una métrica ordinaria porque puede ser asimétrica y no finita.
     \\
 
     Estado
@@ -122,7 +123,7 @@
 
     Información perfecta
                      &
-    Propiedad de los juegos en los que la función de observación de cada participante es inyectiva, de modo que sus conjuntos de información tienen un solo elemento y no hay incertidumbre sobre el estado.
+    Propiedad de los juegos cuyos conjuntos de información en los nodos de decisión son unitarios: quien decide conoce la historia completa hasta ese nodo. No implica por sí sola determinismo ni ausencia de azar.
     \\
 
     Intérprete
@@ -172,7 +173,7 @@
 
     Relajación de efectos negativos (\textit{delete relaxation})
                      &
-    Técnica heurística que ignora las condiciones que borran o invalidan \textit{fluents}, con lo que es posible calcular en tiempo polinomial cotas inferiores a los estados terminales.
+    Relajación de planificación que elimina efectos de borrado. Para STRIPS proposicional explícito su alcanzabilidad es polinomial, pero el plan relajado óptimo sigue siendo NP-hard; las aproximaciones no son siempre admisibles.
     \\
 
     Retropropagación (\textit{backpropagation})

@@ -5,9 +5,9 @@
 
 Los juegos acompañan a la inteligencia artificial desde sus primeros años. Sirven como banco de pruebas porque tienen reglas explícitas, espacios de estados discretos y resultados que cualquiera puede verificar, algo que el mundo físico rara vez ofrece \cite{RussellNorvig2010}. En la década de 1950, Arthur L. Samuel escribió un programa para jugar a las damas inglesas que combinaba búsqueda Minimax con una evaluación heurística y que mejoraba con la experiencia acumulada \cite{Samuel1959}. Con él se popularizó el término \textit{machine learning}, aunque la idea ya la había explorado en teoría Alan Turing \cite{Turing1950}; lo que hizo Samuel fue llevarla a la práctica.
 
-Las décadas siguientes dejaron varios hitos frente a jugadores humanos. En 1997, Deep Blue, la supercomputadora de IBM, derrotó al campeón mundial Garry Kasparov \cite{Campbell2002DeepBlue}. Lo logró con hardware masivamente paralelo y una búsqueda alfa-beta que examinaba hasta doscientos millones de posiciones por segundo, guiada por una función de evaluación pensada y ajustada solo para el ajedrez. Después, el sistema Chinook resolvió el juego de damas \cite{Schaeffer2007Checkers} y, en años más recientes, AlphaGo \cite{Silver2016AlphaGo} y AlphaZero \cite{Silver2018AlphaZero} alcanzaron un nivel sobrehumano en ajedrez, Shogi y Go combinando redes neuronales profundas con aprendizaje por refuerzo.
+Las décadas siguientes dejaron varios hitos frente a jugadores humanos. En 1997, Deep Blue, la supercomputadora de IBM, derrotó al campeón mundial Garry Kasparov \cite{Campbell2002DeepBlue}. Lo logró con hardware masivamente paralelo y una búsqueda alfa-beta que examinaba hasta doscientos millones de posiciones por segundo, guiada por una función de evaluación pensada y ajustada solo para el ajedrez. Después, el sistema Chinook resolvió el juego de damas \cite{Schaeffer2007Checkers} y, en años más recientes, AlphaGo alcanzó un desempeño destacado en Go \cite{Silver2016AlphaGo}. AlphaZero extendió un mismo algoritmo de aprendizaje y búsqueda a Ajedrez, Shogi y Go, con entrenamiento separado para cada juego \cite{Silver2018AlphaZero}.
 
-Aun así, estos sistemas comparten una limitación: cada uno está hecho para un solo dominio. Deep Blue no se diseñó para lidiar con la geometría del Go, el programa de Samuel no sabe nada de las reglas del ajedrez y la arquitectura de AlphaGo está atada a su tablero original. No es un defecto de implementación, sino una consecuencia de cómo se concibieron. Ni siquiera AlphaZero, que usa un mismo algoritmo de aprendizaje para tres juegos, escapa del todo, porque las reglas y las transiciones de cada juego siguen escritas a mano en el código de su simulador. AlphaZero no puede leer la descripción de un juego nuevo y entenderla por sí solo; antes alguien tiene que sentarse a programar qué jugadas son legales en ese tablero.
+Estos avances tienen distintos alcances de generalidad. Deep Blue se diseñó para Ajedrez y AlphaGo para Go; transferirlos a otro juego requiere adaptar su representación y sus reglas. AlphaZero comparte un algoritmo entre tres dominios, pero utiliza reglas, representaciones de acciones y una instancia entrenada para cada uno \cite{Silver2018AlphaZero}. La propuesta de este TT estudiará otra forma de generalidad: recibir reglas externas y construir un modelo consultable sin reprogramar el núcleo de decisión.
 
 Para atacar esta limitación, a partir de 2005 la Universidad de Stanford y la \textit{Association for the Advancement of Artificial Intelligence} (AAAI) impulsaron la línea de investigación conocida como \textit{General Game Playing} (GGP) \cite{Genesereth2005GGP, GeneserethThielscher2014}. Aquí el objetivo ya no es construir el mejor programa para un juego concreto, sino un agente que reciba la descripción formal de un juego que nunca ha visto y lo juegue bien, sin apoyarse en algoritmos o heurísticas escritos para ese dominio \cite{Love2008GDL}. El trabajo de fondo pasa así del programador al agente, que debe interpretar la lógica del juego, armar sus propias representaciones internas y decidir en tiempo real.
 
@@ -17,11 +17,11 @@ Los agentes de juego tradicionales dependen demasiado de las reglas del entorno 
 
 En General Game Playing el agente tiene que manejar el espacio de estados $\mathcal{S}$ de cualquier juego que le toque, sin saber de antemano cómo funciona. Desde la teoría de juegos, un juego de información perfecta se modela con una tupla formal: los jugadores, los estados válidos, las acciones permitidas, la función de transición y las utilidades terminales. El problema es el tamaño. Las configuraciones posibles crecen de forma exponencial y a veces ni siquiera se pueden recorrer completas.
 
-Un ejemplo ayuda a ver la diferencia entre todas las configuraciones que una representación puede armar y las que el juego realmente admite. Tomemos el problema de las 8 damas como un juego de un solo jugador en un tablero de $8 \times 8$. Si el agente representa una posición como un vector $v = (v_1, v_2, \dots, v_8)$, donde cada $v_i \in \{0, 1, \dots, 7\}$ es la fila ocupada en la columna $i$, el \textbf{espacio de configuraciones de la representación} ($\mathcal{S}_{\text{rep}}$) es el producto cartesiano $\{0, 1, \dots, 7\}^8$, con $8^8 = 16\,777\,216$ elementos. El \textbf{espacio de estados válidos} ($\mathcal{S}$) es bastante menor: si las reglas piden a lo sumo una dama por fila y por columna, quedan solo las permutaciones de ocho elementos, es decir $8! = 40\,320$ estados. Y dentro de estos, los \textbf{estados solución} ($\mathcal{S}_{\text{solución}} \subset \mathcal{S}$) son aquellos en los que ninguna dama ataca a otra, ni en fila, ni en columna, ni en diagonal. Para el tablero de $8 \times 8$ hay exactamente $92$, que se reducen a 12 soluciones fundamentales si se consideran equivalentes las rotaciones y reflexiones. Frente a una configuración cualquiera, el agente no trae nada de esto cableado. Debe decidir por sí mismo si pertenece a $\mathcal{S}$ y si es una solución, y solo cuenta con las reglas declarativas que se le entregan.
+Un ejemplo permite distinguir las configuraciones representables de las que satisfacen restricciones. Para las ocho damas se considerarán aquí \textbf{configuraciones completas}: un vector $v=(v_1,\dots,v_8)$ indica la fila de la dama en cada columna de un tablero de $8\times8$. El espacio de representación es $\mathcal S_{\text{rep}}=\{0,\dots,7\}^8$, con $8^8=16\,777\,216$ elementos. Si se exige además una dama por fila, el subconjunto $\mathcal S$ contiene las $8!=40\,320$ permutaciones. Las soluciones $\mathcal S_{\text{solución}}\subset\mathcal S$ satisfacen también $|v_i-v_j|\ne|i-j|$ para $i\ne j$, evitando ataques diagonales. Son $92$ configuraciones \cite{GoogleNQueens}; al agruparlas por rotaciones y reflexiones del cuadrado se obtienen $12$ clases. Esta convención clasifica configuraciones completas; no define los estados parciales ni las transiciones de un algoritmo de colocación. En el agente propuesto, las restricciones del dominio deberán proceder de la descripción externa.
 
-En juegos adversariales más complejos el problema crece mucho. Para el ajedrez se estima que el número de posiciones legales alcanzables está entre $10^{43}$ y $10^{46}$ \cite{Shannon1950, Chinchalkar1996}, y el árbol de juego completo ronda las $10^{120}$ partidas posibles, la cifra conocida como número de Shannon \cite{Shannon1950}. Sin funciones de evaluación hechas a mano ni bibliotecas de aperturas dentro del núcleo, el agente tiene que leer el archivo de reglas mientras corre, calcular las acciones legales de cada turno y estimar qué tan buena es cada jugada, todo con límites estrictos de tiempo y memoria.
+En Ajedrez deben distinguirse el espacio de posiciones y el árbol de variantes. Shannon estimó un orden de $10^{43}$ configuraciones de piezas mediante un conteo combinatorio y un orden de $10^{120}$ variantes bajo supuestos de ramificación y duración medias \cite{Shannon1950}. No son un censo exacto de posiciones legales alcanzables ni del árbol completo. Estas estimaciones ilustran por qué el agente deberá generar sucesores a solicitud y decidir bajo límites de búsqueda, en vez de enumerar todo el espacio.
 
-El problema que atiende este Trabajo Terminal es, entonces, cómo construir una arquitectura de software desacoplada, basada en un lenguaje de descripción de reglas y en un intérprete eficiente, de modo que un motor de decisión que no conoce el dominio pueda jugar varios juegos de información perfecta: que reconozca estados válidos, aplique transiciones y elija jugadas competitivas, sin tocar su código fuente. Qué tan competitivas resultan esas jugadas se medirá enfrentando al agente con agentes de referencia y con motores de nivel configurable.
+El problema que atiende este Trabajo Terminal es cómo construir una arquitectura desacoplada, basada en reglas externas y en un intérprete, para reconocer acciones legales, aplicar transiciones y seleccionar jugadas bajo un presupuesto de búsqueda. Al cargar otro juego cambiarán la descripción y el modelo derivado de ella, conservando el código del núcleo. La calidad de las decisiones se estudiará con las métricas propuestas, sin anticipar fuerza competitiva ni optimalidad con búsqueda limitada.
 
 \begin{figure}[H]
 \centering
@@ -36,7 +36,7 @@ El problema que atiende este Trabajo Terminal es, entonces, cómo construir una 
 % Panel superior: Motor Especializado
 \node[box, fill=red!6, draw=red!60!black, text width=3.8cm] (spec_rules) {
     \textbf{Reglas cableadas en código}\\
-    \scriptsize Tablero $8\times8$, piezas fijas, heurísticas manuales de ajedrez
+    \scriptsize Tablero $8\times8$, piezas fijas y reglas propias del ajedrez
 };
 \node[engine, right=0.9cm of spec_rules, text width=3.6cm] (spec_engine) {
     \textbf{Motor Especializado}\\
@@ -44,19 +44,19 @@ El problema que atiende este Trabajo Terminal es, entonces, cómo construir una 
 };
 \node[action, right=0.9cm of spec_engine, text width=2.4cm] (spec_out) {
     \textbf{Jugada de Ajedrez}\\
-    \scriptsize Inoperante en otros juegos
+    \scriptsize Diseñado para este dominio
 };
 
 \draw[arrow] (spec_rules) -- (spec_engine);
 \draw[arrow] (spec_engine) -- (spec_out);
 
-\node[draw=red!50!black, dotted, line width=0.8pt, fit=(spec_rules) (spec_engine) (spec_out), inner sep=7pt, label={[font=\footnotesize\bfseries\color{red!60!black}]above:(a) Arquitectura tradicional: Motor especializado hiperacoplado}] (box_a) {};
+\node[draw=red!50!black, dotted, line width=0.8pt, fit=(spec_rules) (spec_engine) (spec_out), inner sep=7pt, label={[font=\footnotesize\bfseries\color{red!60!black}]above:(a) Arquitectura tradicional: Motor especializado por dominio}] (box_a) {};
 
 % Panel inferior: GGP
 \node[file, below=1.6cm of spec_rules, text width=3.8cm] (ggp_file) {
     \textbf{Archivo de Reglas Externo}\\
-    \scriptsize Formato estructurado (GDL / DSL)\\
-    \textit{Gato, Ajedrez, Damas, etc.}
+    \scriptsize GDL / subconjunto / DSL por definir\\
+    \textit{Gato y Ajedrez}
 };
 \node[box, fill=teal!8, draw=teal!70!black, right=0.6cm of ggp_file, text width=2.6cm] (ggp_interp) {
     \textbf{Módulo Intérprete}\\
@@ -64,11 +64,11 @@ El problema que atiende este Trabajo Terminal es, entonces, cómo construir una 
 };
 \node[engine, right=0.6cm of ggp_interp, text width=2.8cm] (ggp_engine) {
     \textbf{Motor de Búsqueda}\\
-    \scriptsize Minimax / $\alpha$-$\beta$ / MCTS agnóstico al dominio
+    \scriptsize Minimax / alfa-beta / MCTS (por seleccionar)
 };
 \node[action, right=0.6cm of ggp_engine, text width=2.2cm] (ggp_out) {
     \textbf{Acción Seleccionada}\\
-    \scriptsize Válida para cualquier juego cargado
+    \scriptsize Legal en el dominio soportado
 };
 
 \draw[arrow] (ggp_file) -- (ggp_interp);
@@ -90,7 +90,7 @@ Lo distintivo de la propuesta es que el agente no sabe nada de ningún juego. No
 
 Desde la Ingeniería en Sistemas Computacionales, el desarrollo reúne varias áreas. Hace falta teoría de lenguajes formales y autómatas para diseñar el análisis léxico, sintáctico y semántico del intérprete de reglas; también modelado matemático y estructuras de datos eficientes para guardar en memoria espacios de estados enormes; y, por último, algoritmos de decisión adversarial, tanto clásicos como modernos, como Minimax con poda alfa-beta y Monte Carlo Tree Search (MCTS).
 
-El proyecto, además, es viable en recursos y en tiempo dentro del ciclo anual de Trabajo Terminal en la Escuela Superior de Cómputo del Instituto Politécnico Nacional. No se pretende competir con los sistemas industriales de aprendizaje profundo, que requieren supercómputo, sino comprobar que una arquitectura modular, de escala académica, puede lograr generalidad procesando reglas declarativas y aplicando búsqueda heurística general.
+La viabilidad del proyecto se plantea dentro del ciclo anual de Trabajo Terminal en la Escuela Superior de Cómputo del Instituto Politécnico Nacional, con un alcance académico y búsqueda acotada. Se propone comprobar la reutilización de una arquitectura modular que procese reglas declarativas; igualar los resultados publicados de sistemas de aprendizaje profundo queda fuera de este alcance.
 
 \section{Objetivos}
 
@@ -114,7 +114,7 @@ Este Trabajo Terminal se limita a juegos que cumplen cuatro condiciones a la vez
 
 Elegimos dos casos que se parecen poco entre sí. El Gato (\textit{Tic-Tac-Toe}) es tan pequeño que puede revisarse entero, y por eso ahí es posible comprobar de forma analítica que el intérprete y las transiciones funcionan bien. El Ajedrez está en el otro extremo: con tantas jugadas posibles y una táctica tan profunda, muestra qué le pasa al motor cuando el problema es grande.
 
-También hay límites claros. El sistema no busca ganarle por fuerza táctica a motores comerciales muy especializados como Stockfish, que acumulan décadas de optimización específica en ensamblador, tablas de finales y grandes bases de aperturas \cite{LevyNewborn1991, Campbell2002DeepBlue}. Tampoco se propone replicar sistemas de aprendizaje por refuerzo profundo como AlphaZero o Student of Games, que necesitan clústeres de alto rendimiento y entrenamientos largos \cite{Silver2018AlphaZero, Schmid2023StudentOfGames}. Lo que interesa es la generalidad: mostrar que un mismo núcleo de software puede cargar, interpretar y jugar partidas coherentes y competitivas en distintos juegos con solo cambiar el archivo de reglas, en una estación de trabajo convencional.
+La validación no buscará superar en fuerza de juego a motores especializados como Stockfish, un motor libre y de código abierto para Ajedrez \cite{StockfishOfficial}. Tampoco se propone reproducir el entrenamiento profundo de AlphaZero o Student of Games \cite{Silver2018AlphaZero, Schmid2023StudentOfGames}. Los recursos empleados para entrenar esos sistemas y los de su ejecución posterior son aspectos diferentes; aquí se estudiará la generalidad operativa mediante reglas externas y búsqueda acotada, sin atribuir al prototipo un desempeño aún no medido.
 
 \section{Metodología y planeación del desarrollo}
 \label{sec:metodologia_planeacion}
@@ -194,13 +194,14 @@ La Tabla \ref{tab:seguimiento_desarrollo} relaciona las etapas con sus entregabl
 \subsection{Diseño de la evaluación: métricas y muestra}
 \label{subsec:evaluacion_propuesta}
 
-Se propone evaluar la corrección de las reglas, la calidad de decisión, el costo de búsqueda y la generalidad operativa de la arquitectura de la Sección~\ref{sec:arquitectura_propuesta}. En TT1 se documentarán los casos, las referencias de comparación y el procedimiento; las mediciones se realizarán durante la validación posterior. Este diseño complementará los objetivos existentes y mantendrá pendiente el acuerdo sobre el experimento definitivo de Ajedrez.
+Se propone evaluar la corrección de las reglas, la calidad de decisión, el costo de búsqueda y la generalidad operativa de la arquitectura de la Sección~\ref{sec:arquitectura_propuesta}. Se documentarán los casos, las referencias de comparación y el procedimiento antes de realizar las mediciones. Este diseño complementará los objetivos existentes y mantendrá pendiente el acuerdo sobre el experimento definitivo de Ajedrez. Las posiciones funcionales y los problemas de primera jugada serán comprobaciones complementarias: no sustituirán las partidas contra un motor con ELO configurable previstas en el objetivo específico. Su motor, nivel, número de partidas y presupuesto continuarán pendientes de acuerdo.
 
 \subsubsection{Métricas y procedimiento de medición}
 
-Para cada comprobación se preparará una entrada y un resultado esperado obtenido de una referencia independiente. Para los indicadores de acierto de movimientos, transiciones, terminalidad, utilidad y decisión se utilizará la proporción
+Para cada comprobación se preparará una entrada y un resultado esperado obtenido de una referencia independiente. Para los indicadores de acierto de movimientos, transiciones, terminalidad, utilidad y decisión se utilizará la proporción de la Ecuación~\eqref{eq:porcentaje-acierto}:
 \begin{equation}
     P_k = 100\,\frac{C_k}{N_k}, \qquad N_k > 0,
+    \label{eq:porcentaje-acierto}
 \end{equation}
 donde $N_k$ será el número de casos evaluados del indicador $k$ y $C_k$ el número de coincidencias. Los denominadores se reportarán por separado: posiciones, pares estado--acción, estados terminales o decisiones, según corresponda. El tiempo, la profundidad y los nodos se expresarán en sus unidades propias; la generalidad se comprobará mediante evidencia de conservación del núcleo. La Tabla~\ref{tab:metricas_propuestas} precisa cada comprobación.
 
@@ -237,7 +238,7 @@ donde $N_k$ será el número de casos evaluados del indicador $k$ y $C_k$ el nú
     \addlinespace
     Calidad de decisión & En Gato, porcentaje de decisiones pertenecientes al conjunto óptimo calculado por un solucionador independiente con Minimax. En Ajedrez, porcentaje de aciertos de primera jugada: la acción inicial deberá pertenecer al conjunto de respuestas aceptadas y entregarse dentro del presupuesto acordado. Las acciones inválidas y los tiempos agotados contarán como fallos. \\
     \addlinespace
-    Costo de búsqueda & Tiempo por decisión en milisegundos, resumido mediante mediana y percentil 95; número de nodos expandidos y profundidad alcanzada en medias jugadas. Las simulaciones de MCTS se reportarán por separado. Se medirá desde la solicitud de acción sobre un estado disponible hasta la respuesta; la carga del archivo se registrará aparte. \\
+    Costo de búsqueda & Tiempo por decisión en milisegundos, resumido mediante mediana y percentil 95; número de nodos expandidos y profundidad máxima del árbol explorado, contada en medias jugadas desde la raíz (profundidad cero). Se contará la profundidad de los nodos incorporados al árbol; el horizonte completado de Minimax y la longitud de las simulaciones de MCTS se reportarán aparte cuando correspondan. Se medirá desde la solicitud de acción sobre un estado disponible hasta la respuesta; la carga del archivo se registrará aparte. \\
     \addlinespace
     Generalidad operativa & Se ejecutarán ambos dominios con la misma versión del intérprete y del motor. Se registrarán los componentes modificados y se revisará que las reglas particulares permanezcan en las descripciones externas. El criterio será conservar el núcleo al cambiar de juego y verificar su funcionamiento. \\
 \end{longtable}
@@ -268,170 +269,3 @@ Se mantendrá la distribución del protocolo: Sánchez Catarino Edgar se ocupar�
 Los cronogramas individuales se presentan en el apartado de \hyperref[sec:cronogramas]{Cronogramas}, dentro de Anexos. Se conservará la secuencia de agosto a junio y el sombreado de las actividades del documento base, sin agregar años, fechas de entrega ni porcentajes de avance que no estén confirmados.
 
 Se deberá revisar una dependencia del calendario: los experimentos de Gustavo están previstos para febrero y marzo, mientras que el archivo de Ajedrez de Edgar está previsto para abril. Antes de ejecutar la validación, se determinará qué experimentos podrán realizarse con los recursos disponibles y cuáles requerirán ese archivo. Esta observación no modifica los periodos del protocolo ni supone que ya exista una descripción parcial de Ajedrez.
-
-\subsection{Diferencias documentadas y decisiones pendientes}
-
-La planeación conservará el protocolo como base. La Tabla \ref{tab:decisiones_planeacion} hará explícitas las diferencias con el texto actual y con el documento de mejora académica \cite{MejoraAcademicaTT2027A178}. Las recomendaciones de mejora no se presentarán como sustituciones aprobadas. La definición final de estos puntos deberá reflejarse de manera consistente en los objetivos, el alcance y el diseño experimental.
-
-\begingroup
-\small
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\LTleft}{0pt}
-\setlength{\LTright}{0pt}
-\setlength{\LTcapwidth}{\textwidth}
-\begin{longtable}{@{}L{\dimexpr0.30\textwidth-2\tabcolsep\relax} L{\dimexpr0.36\textwidth-2\tabcolsep\relax} L{\dimexpr0.34\textwidth\relax}@{}}
-    \caption{Diferencias entre documentos y decisiones de planeación pendientes.}
-    \label{tab:decisiones_planeacion}\\
-    \toprule
-    \textbf{Protocolo} & \textbf{Documento actual o mejora propuesta} & \textbf{Decisión pendiente} \\
-    \midrule
-    \endfirsthead
-    \multicolumn{3}{l}{\textit{Tabla \thetable{} (continuación).}}\\
-    \toprule
-    \textbf{Protocolo} & \textbf{Documento actual o mejora propuesta} & \textbf{Decisión pendiente} \\
-    \midrule
-    \endhead
-    \midrule
-    \multicolumn{3}{r}{\textit{Continúa en la siguiente página.}}\\
-    \endfoot
-    \bottomrule
-    \endlastfoot
-
-    Describe autojuego y almacenamiento de pesos asociados al nivel de habilidad. & El documento actual enfatiza la búsqueda general; el aprendizaje profundo se trata como antecedente. & Precisar si se implementará aprendizaje, qué significarán los pesos y cómo se comprobará ese mecanismo. Autojuego no se asumirá equivalente a aprendizaje profundo. \\
-    \addlinespace
-    Propone un oponente humano que reproduzca movimientos históricos de un gran maestro. & El objetivo específico actual propone partidas contra un motor con ELO configurable. & Definir el experimento de Ajedrez, el oponente, las posiciones o partidas y las métricas antes de ejecutar pruebas. \\
-    \addlinespace
-    Incluye archivos de Gato y Ajedrez y experimentos en ambos dominios. & La mejora académica recomienda Gato como caso funcional completo y Ajedrez mediante escenarios controlados. & Delimitar las reglas y escenarios de Ajedrez y documentar cualquier ajuste respecto del protocolo. La recomendación no se considerará aprobada por su sola inclusión. \\
-    \addlinespace
-    Plantea diseñar un lenguaje de dominio específico y documentar su gramática y semántica. & El Marco Teórico contempla GDL completo, un subconjunto o un DSL propio inspirado en lenguajes existentes. & Seleccionar y justificar el lenguaje adoptado, su expresividad y sus restricciones. \\
-\end{longtable}
-\endgroup
-
-Además, se deberán seleccionar los algoritmos de decisión y sus criterios de evaluación. Minimax, poda alfa-beta y MCTS/UCT se mantendrán como alternativas fundamentadas; su presencia en el Marco Teórico no implicará que todos deban implementarse. Las decisiones técnicas se documentarán antes de cerrar el diseño y no se fijará aquí una tecnología de implementación.
-
-\subsection{Planeación de la primera etapa del Trabajo Terminal}
-\label{subsec:planeacion_tt1}
-
-Para TT1 se propone concentrar el trabajo en la revisión, la investigación, la planeación y la preparación del análisis y del diseño del sistema. Los cinco productos recuperados del protocolo corresponden al proyecto completo; en esta primera etapa se establecerán las bases documentales que orientarán su construcción y validación posterior. La evidencia de avance estará constituida por documentos, modelos y decisiones justificadas que puedan revisarse durante las iteraciones.
-
-Esta planeación complementará la metodología iterativa e incremental mediante ciclos semanales. Se mantendrán las actividades y los periodos mensuales del protocolo como referencia general \cite{ProtocoloTT2027A178}; el detalle semanal se utilizará para organizar el trabajo dentro de esos periodos. La duración total de TT1 y las fechas de revisión se incorporarán cuando estén confirmadas. Los hitos de esta propuesta no representan entregas ya realizadas ni sustituyen los acuerdos de seguimiento académico.
-
-\subsection{Organización de los ciclos semanales}
-
-Cada semana se organizará en tres momentos de trabajo:
-
-\begin{enumerate}
-    \item \textbf{Planeación del ciclo.} Se seleccionará un objetivo concreto a partir del hito en curso y de las observaciones de la revisión anterior. Para cada actividad se identificarán el responsable, el entregable esperado, sus dependencias y la evidencia que permitirá revisarla. Las tareas se distribuirán tomando como base las responsabilidades del protocolo y se acordará una revisión cruzada entre ambos integrantes.
-    \item \textbf{Desarrollo del entregable.} Se realizarán las consultas, comparaciones o elaboraciones documentales necesarias. Se registrarán las fuentes utilizadas, los supuestos y las decisiones abiertas. Cuando una tarea dependa de información aún no definida, se separará la parte que pueda avanzar de aquella que requiera resolver la dependencia.
-    \item \textbf{Revisión y ajuste.} Al cierre de la semana se contrastará el entregable con la evidencia acordada. Se registrarán las observaciones, las correcciones necesarias y las actividades que continuarán en el siguiente ciclo. El paso a un nuevo hito se justificará por los productos revisados y por la atención de sus dependencias.
-\end{enumerate}
-
-Un hito podrá abarcar varias semanas y una semana podrá incluir correcciones de un hito anterior. Se propone numerar los ciclos de forma consecutiva para relacionar las actividades con sus versiones y revisiones. Esta numeración servirá para el seguimiento interno; su correspondencia con fechas se establecerá al acordar el calendario de TT1.
-
-\subsection{Hitos documentales y evidencias de TT1}
-\label{subsec:hitos_tt1}
-
-La Tabla \ref{tab:hitos_tt1} presenta una secuencia propuesta de hitos. Su finalidad será relacionar la investigación con las decisiones de análisis, diseño y validación. Los entregables indicados se elaborarán durante el trabajo de TT1; su inclusión en la tabla no acreditará que los capítulos correspondientes estén desarrollados.
-
-\begingroup
-\small
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\LTleft}{0pt}
-\setlength{\LTright}{0pt}
-\setlength{\LTcapwidth}{\textwidth}
-\begin{longtable}{@{}L{2.5cm} L{5.0cm} L{\dimexpr\textwidth-7.5cm-4\tabcolsep\relax}@{}}
-    \caption{Hitos propuestos para la planeación de TT1.}
-    \label{tab:hitos_tt1}\\
-    \toprule
-    \textbf{Hito} & \textbf{Entregable y dependencia} & \textbf{Evidencia de revisión propuesta} \\
-    \midrule
-    \endfirsthead
-    \multicolumn{3}{l}{\textit{Tabla \thetable{} (continuación).}}\\
-    \toprule
-    \textbf{Hito} & \textbf{Entregable y dependencia} & \textbf{Evidencia de revisión propuesta} \\
-    \midrule
-    \endhead
-    \midrule
-    \multicolumn{3}{r}{\textit{Continúa en la siguiente página.}}\\
-    \endfoot
-    \bottomrule
-    \endlastfoot
-
-    H1. Revisión y delimitación & Síntesis de antecedentes, comparación de alternativas y registro de alcance y preguntas abiertas. Se partirá del protocolo y de la investigación documental. & Cada afirmación central contará con una fuente identificable; se distinguirán los compromisos del protocolo, las recomendaciones y las decisiones pendientes. \\
-    \addlinespace
-    H2. Preparación del análisis & Relación de requisitos, restricciones y casos de uso previstos. Dependerá de la delimitación del hito H1. & Los requisitos tendrán un identificador y una forma prevista de comprobación; se relacionarán con los objetivos y se explicitarán las exclusiones. \\
-    \addlinespace
-    H3. Preparación del diseño & Propuesta del lenguaje, representación del juego, arquitectura y responsabilidades de los componentes. Dependerá de los requisitos del hito H2. & Se justificará la comparación de alternativas y se mostrará cómo las reglas externas permitirán consultar legalidad, transiciones, terminalidad y utilidades. Las decisiones abiertas quedarán señaladas. \\
-    \addlinespace
-    H4. Planeación de la validación & Propuesta de casos de comprobación, condiciones de comparación y registro de riesgos y dependencias. Se apoyará en H2 y H3 y retroalimentará sus decisiones. & Cada comprobación tendrá un propósito y una evidencia esperada. Se distinguirán los casos funcionales de Gato de las opciones de evaluación de Ajedrez aún por acordar. \\
-    \addlinespace
-    H5. Integración y revisión de TT1 & Versión integrada del documento y relación de observaciones atendidas y pendientes. Requerirá revisar los productos de H1 a H4. & Se comprobará la trazabilidad entre objetivos, requisitos, diseño y validación prevista; cada pendiente tendrá responsable y una acción de seguimiento. \\
-\end{longtable}
-\endgroup
-
-La secuencia permitirá revisar el análisis y el diseño a partir de lo aprendido en semanas posteriores. Si una observación modifica el alcance de un entregable, se registrarán su motivo y sus efectos sobre las tareas dependientes antes de actualizar la planeación semanal.
-
-\subsection{Criterios para revisar la viabilidad}
-
-La viabilidad de la primera etapa se revisará a partir de la delimitación del trabajo, las dependencias entre entregables y la evidencia obtenida en cada ciclo. Se propone considerar los siguientes criterios:
-
-\begin{itemize}
-    \item \textbf{Coherencia académica.} La investigación deberá aportar criterios para el análisis y el diseño. Se verificará que las alternativas estudiadas respondan al problema del desacoplamiento entre reglas y motor de decisión y que sus restricciones queden identificadas.
-    \item \textbf{Factibilidad del diseño propuesto.} Se revisará que la representación prevista permita expresar los elementos del modelo formal y que cada componente tenga responsabilidades y consultas definidas. Las limitaciones identificadas se incorporarán al diseño y al registro de riesgos antes de comprometer la construcción correspondiente.
-    \item \textbf{Organización temporal.} Al inicio de cada semana se acordará un entregable acotado. Si una actividad resulta demasiado amplia para su revisión al cierre del ciclo, se dividirá en productos parciales con dependencias explícitas. El avance observado servirá para ajustar los ciclos siguientes.
-    \item \textbf{Continuidad del proyecto.} Los productos de TT1 deberán permitir identificar qué se construirá después, qué decisiones lo sustentan y cómo se comprobará. Los pendientes que condicionen esa continuidad se conservarán visibles y tendrán una acción prevista.
-\end{itemize}
-
-La evidencia para revisar estos criterios estará formada por los entregables de la Tabla \ref{tab:hitos_tt1}, las revisiones semanales y el registro de decisiones. La conclusión sobre viabilidad se actualizará con esas evidencias; la existencia del cronograma será una referencia de organización y no una comprobación suficiente de cumplimiento.
-
-\subsection{Riesgos y medidas de seguimiento}
-\label{subsec:riesgos_planeacion}
-
-Se propone mantener el registro de la Tabla \ref{tab:riesgos_tt1}. Los riesgos se revisarán al iniciar y cerrar cada ciclo semanal. Las señales descritas permitirán identificar cuándo será necesario actuar; las medidas deberán quedar relacionadas con un responsable y una actividad del ciclo en que se atiendan.
-
-\begingroup
-\small
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\LTleft}{0pt}
-\setlength{\LTright}{0pt}
-\setlength{\LTcapwidth}{\textwidth}
-\begin{longtable}{@{}L{3.1cm} L{3.8cm} L{\dimexpr\textwidth-6.9cm-4\tabcolsep\relax}@{}}
-    \caption{Registro inicial propuesto de riesgos de planeación.}
-    \label{tab:riesgos_tt1}\\
-    \toprule
-    \textbf{Riesgo} & \textbf{Señal para su revisión} & \textbf{Medida prevista} \\
-    \midrule
-    \endfirsthead
-    \multicolumn{3}{l}{\textit{Tabla \thetable{} (continuación).}}\\
-    \toprule
-    \textbf{Riesgo} & \textbf{Señal para su revisión} & \textbf{Medida prevista} \\
-    \midrule
-    \endhead
-    \midrule
-    \multicolumn{3}{r}{\textit{Continúa en la siguiente página.}}\\
-    \endfoot
-    \bottomrule
-    \endlastfoot
-
-    R1. Indefinición del lenguaje de reglas & Las alternativas estudiadas no permiten justificar una especificación común para los juegos previstos. & Comparar expresividad, semántica y complejidad de interpretación; documentar la decisión o la restricción que deba revisarse antes de cerrar H3. \\
-    \addlinespace
-    R2. Evaluación de Ajedrez sin acuerdo & El oponente, los casos o las métricas dependen de supuestos distintos entre documentos. & Preparar una ficha de decisión con las alternativas y sus implicaciones. Registrar el acuerdo antes de ejecutar las pruebas que dependan de él, conservando identificada la diferencia con el protocolo. \\
-    \addlinespace
-    R3. Dependencia temporal de experimentos & Las pruebas programadas para febrero y marzo requieren el archivo de Ajedrez previsto para abril. & Identificar qué pruebas necesitan ese archivo y revisar la secuencia con el director. Registrar cualquier ajuste acordado de manera explícita, conservando el calendario original como antecedente. \\
-    \addlinespace
-    R4. Entregables semanales demasiado amplios & Al cierre del ciclo no existe un producto que pueda revisarse de forma independiente. & Dividir la actividad, acordar la evidencia del producto parcial y trasladar el trabajo restante al ciclo siguiente, indicando sus dependencias. \\
-    \addlinespace
-    R5. Inconsistencias entre aportaciones & Los requisitos, modelos o términos de distintos apartados describen comportamientos incompatibles. & Realizar revisión cruzada, registrar observaciones y comprobar la trazabilidad antes de integrar la versión correspondiente a H5. \\
-    \addlinespace
-    R6. Ampliación del alcance & Una nueva propuesta exige funciones o dominios adicionales a los previstos. & Revisar su relación con los objetivos, su efecto en los hitos y las dependencias. Incorporarla a la planeación solo después de documentar la decisión y el ajuste necesario. \\
-\end{longtable}
-\endgroup
-
-\subsection{Registro de avance y decisiones}
-
-Para cada ciclo se propone conservar una ficha con el número de semana, el hito relacionado, las actividades, el responsable, la versión del entregable, la evidencia de revisión y las observaciones. Cada actividad se registrará como pendiente, en desarrollo, en revisión o atendida. El estado \textit{atendida} requerirá vincular la evidencia correspondiente y registrar el resultado de su revisión; no se asignarán porcentajes de avance sin un criterio previamente definido.
-
-Las decisiones sobre el lenguaje, los algoritmos, el mecanismo de autojuego o aprendizaje y la evaluación de Ajedrez se registrarán con la alternativa analizada, su justificación, los apartados afectados y la revisión en que se acuerden. Mientras una decisión continúe abierta, se indicará qué tareas podrán avanzar y cuáles dependerán de resolverla. De esta forma, el seguimiento semanal permitirá actualizar la planeación sin presentar como concluidos los productos ni como aprobadas las propuestas pendientes.

@@ -11,7 +11,7 @@ Ese enfoque alcanzó su cima en 1997, cuando Deep Blue venció al campeón mundi
 
 Desde 2016 llegó otro salto, con AlphaGo \cite{Silver2016AlphaGo}, AlphaZero \cite{Silver2018AlphaZero} y MuZero \cite{Schrittwieser2020MuZero}. AlphaZero mostró que bastaban las reglas básicas para dominar el ajedrez, el Shogi y el Go. Lo hizo uniendo la búsqueda en árboles Monte Carlo (MCTS) con redes neuronales profundas entrenadas por autojuego, sin aperturas ni conocimiento humano experto.
 
-Aun así, la literatura señala que AlphaZero no es un agente general en el sentido estricto \cite{Browne2020Ludii, Kowalski2019RBG, GeneserethThielscher2014}. El algoritmo de entrenamiento y búsqueda es el mismo para todos los juegos, pero las reglas de cada uno viven dentro de simuladores independientes escritos en C++. El sistema no puede leer la descripción de un juego nuevo ni deducir sus transiciones: primero un equipo de ingenieros debe programar el entorno. Esta limitación mostró que hacía falta una línea de investigación donde la generalidad del agente dependa de su capacidad para interpretar lenguajes declarativos formales.
+En esta revisión se distinguirá la reutilización de un algoritmo de aprendizaje de la interpretación de reglas externas. AlphaZero comparte aprendizaje y búsqueda entre juegos, pero emplea reglas y codificaciones de estados y acciones propias de cada dominio, además de entrenar una instancia por juego \cite{Silver2018AlphaZero}. GGP plantea recibir una descripción formal y razonar sobre ella \cite{Genesereth2005GGP}. Esta comparación precisa el sentido de generalidad que interesa al TT, sin negar la aportación de AlphaZero ni atribuirle una interfaz declarativa que su publicación no propone.
 
 \section{Surgimiento y fundamentos de General Game Playing}
 
@@ -23,7 +23,7 @@ Así transcurre una partida típica de GGP. El agente se conecta a un servidor c
 
 \section{Generaciones y agentes emblemáticos de General Game Playing}
 
-En las competencias anuales de la AAAI, la literatura distingue tres generaciones de agentes \cite{GeneserethThielscher2014, Finnsson2012Simulation, Browne2012MCTS}. Lo que las separa es cómo reparten el trabajo entre la deducción lógica y la exploración heurística.
+Para organizar esta revisión se agrupan los agentes en tres generaciones expositivas: análisis de reglas, búsqueda por simulación y optimización de la simulación. Esta división servirá para comparar enfoques; no se atribuye a la literatura una taxonomía única ni fronteras cronológicas estrictas. Los trabajos originales sustentan las técnicas descritas \cite{Clune2007ClunePlayer, Schiffel2007Fluxplayer, Finnsson2008CadiaPlayer, Finnsson2012Simulation}.
 
 \subsection{Primera generación: Análisis estático de reglas y Minimax heurístico}
 
@@ -88,9 +88,8 @@ En esa época apareció también una innovación clave en la representación int
 
 La tercera generación se dedicó a pulir el motor de simulación. El objetivo era superar la lentitud de las partidas puramente aleatorias en juegos con espacios de búsqueda inmensos o ramas terminales muy profundas.
 
-Sancho, de Steve Draper y Andrew Rose, fue campeón internacional en 2014 \cite{DraperRose2014Sancho}. Incorporaba una implementación industrial de PropNets muy optimizada y la combinaba con heurísticas de simulación informadas: MAST (\textit{Move-Average Sampling Technique}), de Finnsson y Björnsson \cite{Finnsson2008CadiaPlayer}, y RAVE (\textit{Rapid Action Value Estimation}), de Gelly y Silver \cite{GellySilver2011RAVE}. Durante la simulación, en lugar de elegir los movimientos de manera uniforme, Sancho guardaba el valor promedio que había tenido cada acción en todas las simulaciones anteriores y sesgaba el muestreo hacia las jugadas que en conjunto habían resultado mejores.
+Sancho, desarrollado por Steve Draper y Andrew Rose, ganó la competencia internacional de GGP de 2014, según la página de sus autores \cite{DraperRose2014Sancho}. Este antecedente se distinguirá de las técnicas que se describen en publicaciones independientes: MAST utiliza estadísticas históricas de acciones para orientar las simulaciones \cite{Finnsson2008CadiaPlayer}, mientras RAVE reutiliza estimaciones de acciones observadas durante la búsqueda \cite{GellySilver2011RAVE}. Su estudio no implica que ambas técnicas estuvieran presentes en Sancho ni que se implementarán en este TT.
 
-Después llegó Galvanise, de Richard Emslie, que dominó los torneos internacionales desde 2015 con técnicas avanzadas de descomposición factorial del juego. Analizaba el grafo de dependencias de las reglas para ver si el juego contenía subentornos independientes, por ejemplo subpartidas en tableros paralelos, y aplicaba desramificación progresiva (\textit{progressive unpruning}) junto con la detección de estados muertos. Así evitaba gastar tiempo de cómputo en ramas que, matemáticamente, no aportaban nada.
 
 La Figura \ref{fig:cronologia_ggp} resume cómo se pasa de una generación a otra y cómo todas desembocan en los formalismos actuales.
 
@@ -125,8 +124,8 @@ La Figura \ref{fig:cronologia_ggp} resume cómo se pasa de una generación a otr
     \textbf{3ª Generación (2014--2015): PropNets Optimizadas y Simulación Informada}\\
     \vspace{2pt}\noindent
     \begin{tabularx}{\linewidth}{@{}L{0.48\linewidth}@{\hspace{0.04\linewidth}}L{0.48\linewidth}@{}}
-    \textbf{Sancho (2014):} Campeón internacional mediante PropNets de nivel industrial y heurísticas de simulación guiada histórica (MAST y RAVE). &
-    \textbf{Galvanise (2015):} Factorización analítica de reglas para detectar subentornos desacoplados, desramificación progresiva y poda de estados muertos.
+    \textbf{Sancho (2014):} Campeón internacional; desarrollado por Steve Draper y Andrew Rose. &
+    \textbf{Simulación informada:} MAST y RAVE son antecedentes para reutilizar estadísticas de acciones; su presencia en un agente concreto requiere evidencia propia.
     \end{tabularx}
 };
 
@@ -144,7 +143,7 @@ La Figura \ref{fig:cronologia_ggp} resume cómo se pasa de una generación a otr
 \draw[arrow] (gen3.south) -- (gen4.north);
 
 \end{tikzpicture}
-\caption{Cronología evolutiva y generaciones algorítmicas en \textit{General Game Playing} (GGP).}
+\caption{Organización expositiva de antecedentes y generaciones algorítmicas en \textit{General Game Playing} (GGP).}
 \label{fig:cronologia_ggp}
 \end{figure}
 
@@ -160,7 +159,7 @@ Para cubrir juegos con azar y con información oculta, Michael Thielscher formal
 
 Ludii se desarrolló en la Universidad de Maastricht bajo la dirección de Cameron Browne y es uno de los avances más notables en la descripción general de juegos de mesa modernos \cite{Browne2020Ludii, Soemers2024Ludii}. En lugar de la lógica de predicados pura de GDL, usa \textit{ludemes}, unidades conceptuales que agrupan información lúdica de alto nivel.
 
-El lenguaje trae abstracciones propias para tableros geométricos (cuadrículas, hexágonos, grafos arbitrarios), contenedores, piezas móviles, reglas de captura y condiciones de victoria por alineación o territorio. Como se ejecuta sobre una máquina virtual muy optimizada en Java, evalúa jugadas mucho más rápido que los intérpretes tradicionales de GDL, y su biblioteca ya supera los mil juegos tradicionales y contemporáneos \cite{Browne2020Ludii, Soemers2024Ludii}. Para este trabajo importa porque demuestra que un lenguaje estructurado de más alto nivel puede seguir siendo general para la inteligencia artificial y, al mismo tiempo, ser más legible y eficiente.
+El lenguaje incorpora conceptos de tableros, piezas, movimientos y condiciones de fin. Piette y colaboradores compararon Ludii con un razonador GDL basado en PropNet en los juegos de Tiltyard: reportaron mayor velocidad de simulación para las descripciones y condiciones evaluadas, sin demostrar una superioridad para todo juego o implementación \cite{Browne2020Ludii}. Soemers y colaboradores documentan más de mil descripciones en la biblioteca de su estudio de 2024 \cite{Soemers2024Ludii}; esa cifra corresponde a la publicación, no a un inventario actualizado del sistema.
 
 \subsection{Regular Boardgames}
 
@@ -176,9 +175,9 @@ En el campo del aprendizaje automático actual, DeepMind liberó en 2019 la plat
 
 Últimamente la investigación intenta juntar dos cosas: la descripción declarativa de juegos y las técnicas de aprendizaje profundo que transformaron a los motores especializados.
 
-Un trabajo importante en esa dirección fue el de Adrian Goldwaser y Michael Thielscher, presentado en la conferencia AAAI de 2020, sobre aprendizaje por refuerzo profundo en GGP \cite{Goldwaser2020DRLGGP}. Mostraron que una descripción GDL puede compilarse en una red proposicional y que, a partir de la topología de compuertas de esa red, se puede generar de forma automática la arquitectura de una red neuronal convolucional o densa, sin que intervenga un diseñador humano. Después el agente entrena la red con autojuego continuo, en un esquema parecido al de AlphaZero, y consigue evaluaciones posicionales precisas en juegos de complejidad media.
+Goldwaser y Thielscher estudiaron el aprendizaje por refuerzo profundo en GGP \cite{Goldwaser2020DRLGGP}. Su modelo recibe valores de nodos de una PropNet y construye automáticamente capas completamente conectadas, con salidas de política y valor por rol. El algoritmo 1 de su artículo determina tamaños de capas a partir de las entradas y acciones; no reproduce la topología de compuertas como una red convolucional. Los autores explican que las convoluciones requieren un orden geométrico que GDL no proporciona necesariamente. El entrenamiento utiliza autojuego y MCTS; se trata de un antecedente y no de una arquitectura neuronal seleccionada para este TT.
 
-Más general aún es \textit{Student of Games} (SoG), que DeepMind presentó en 2023 y que Martin Schmid y colaboradores publicaron en \textit{Science Advances} \cite{Schmid2023StudentOfGames}. Es un algoritmo unificado que integra búsqueda guiada por árboles, aprendizaje por autojuego y teoría de juegos con resolución local continua. Compitió a nivel experto tanto en juegos de información perfecta (Ajedrez y Go) como en juegos de información imperfecta de gran escala (Póker Texas Hold'em y Scotland Yard), sin adaptar las ecuaciones de aprendizaje a cada caso. Con todo, igual que sus predecesores, depende de simuladores de reglas programados en software nativo y necesita semanas de entrenamiento en infraestructura de supercómputo \cite{Schmid2023StudentOfGames}. Es un horizonte científico a largo plazo más que una solución de ingeniería ligera para un equipo de escritorio.
+Student of Games, publicado por Schmid y colaboradores en 2023, combina búsqueda, aprendizaje por autojuego y razonamiento de teoría de juegos para estudiar Ajedrez, Go, póker y Scotland Yard \cite{Schmid2023StudentOfGames}. La publicación distingue configuraciones de entrenamiento y de evaluación. Sus recursos y tiempos experimentales no se presentarán como un requisito universal para ejecutar cualquier agente basado en ese enfoque. En este TT sirve como antecedente de generalidad algorítmica; su aprendizaje profundo no forma parte de la implementación comprometida.
 
 \section{Síntesis comparativa y posicionamiento del Trabajo Terminal}
 
@@ -195,19 +194,19 @@ Después de este recorrido se pueden comparar los enfoques principales de la lit
 \midrule
 Deep Blue \cite{Campbell2002DeepBlue} & Código nativo cableado & Alfa-beta especializado & Ajedrez (info. perfecta) & Hardware dedicado a la medida \\
 \addlinespace
-AlphaZero \cite{Silver2018AlphaZero} & Simulador nativo en C++ & MCTS + Redes profundas & Varios (info. perfecta) & Clústeres masivos de TPUs \\
+AlphaZero \cite{Silver2018AlphaZero} & Reglas y codificación por dominio & MCTS + Redes profundas & Varios (info. perfecta) & Entrenamiento y evaluación con recursos distintos \\
 \addlinespace
 ClunePlayer \cite{Clune2007ClunePlayer} & Reglas lógicas (GDL) & Minimax con heurística aprendida & General GGP (info. perfecta) & Estación de trabajo estándar \\
 \addlinespace
 CadiaPlayer \cite{Finnsson2008CadiaPlayer} & Reglas lógicas (GDL) & MCTS con UCT sin heurística & General GGP (info. perfecta) & Estación de trabajo estándar \\
 \addlinespace
-Sancho / Galvanise & Reglas lógicas (GDL) & MCTS + PropNets + MAST & General GGP (info. perfecta) & Estación de trabajo estándar \\
+Sancho \cite{DraperRose2014Sancho} & Reglas lógicas (GDL) & Agente de competencia GGP & General GGP (info. perfecta) & Estación de trabajo estándar \\
 \addlinespace
 Ludii \cite{Browne2020Ludii, Soemers2024Ludii} & Sintaxis de ludemes & MCTS / UCT / Alpha-beta & General (tableros y cartas) & Entorno Java de escritorio \\
 \addlinespace
 RBG \cite{Kowalski2019RBG} & Expresiones regulares & Búsqueda con autómatas finitos & General (tableros) & Entorno C++ de alto rendimiento \\
 \addlinespace
-Student of Games \cite{Schmid2023StudentOfGames} & Simulador nativo en C++ & Búsqueda + Teoría de juegos & Perfecta e imperfecta & Supercómputo distribuido \\
+Student of Games \cite{Schmid2023StudentOfGames} & Reglas y codificación por dominio & Búsqueda + Teoría de juegos & Perfecta e imperfecta & Configuraciones experimentales por juego \\
 \addlinespace
 \textbf{Presente TT (Propuesta)} & \textbf{Lenguaje declarativo (DSL/GDL)} & \textbf{Minimax / Alfa-Beta / MCTS desacoplado} & \textbf{General (información perfecta)} & \textbf{Estación de trabajo estándar} \\
 \bottomrule
@@ -216,8 +215,8 @@ Student of Games \cite{Schmid2023StudentOfGames} & Simulador nativo en C++ & Bú
 
 Del análisis se desprende dónde se ubica este Trabajo Terminal.
 
-Primero, se aparta de las arquitecturas monolíticas de propósito único como Deep Blue y adopta el principio de General Game Playing: el motor de decisión no guarda variables ni heurísticas ligadas a ningún juego y razona únicamente sobre la máquina de estados que define el archivo de entrada.
+Primero, se propone aplicar el principio de General Game Playing: el motor de decisión deberá operar sobre el modelo construido a partir de reglas externas, sin variables ni heurísticas codificadas para un dominio particular.
 
-Segundo, frente a propuestas de aprendizaje profundo como AlphaZero o Student of Games, que requieren clústeres enormes y simuladores hechos a mano para cada juego, este proyecto recupera el valor de un procesamiento declarativo, transparente y determinista. La generalidad del agente se apoya en interpretar reglas externas, y eso permite auditar las decisiones del motor, comprobar la legalidad de cada jugada y trabajar con los recursos de un equipo de escritorio.
+Segundo, el TT se centrará en la interpretación declarativa y la búsqueda acotada. La comparación con AlphaZero y Student of Games no implica que sus costos de entrenamiento sean los mismos que los de tomar decisiones con un modelo entrenado. La generalidad operativa del sistema propuesto se comprobará conservando el núcleo y cambiando la descripción externa.
 
-Por último, el proyecto aprovecha lo aprendido en la evolución de GGP. Adopta una especificación declarativa estructurada, inspirada en el compromiso computacional de GDL, diseña un modelo interno en memoria pensado para evaluar transiciones con rapidez y ofrece una interfaz desacoplada con la que se pueden comparar los algoritmos clásicos de búsqueda adversarial con los métodos de simulación estocástica. Con ello se busca mostrar que sí es posible construir un agente de juego general, modular y eficiente dentro del marco de la Ingeniería en Sistemas Computacionales.
+Por último, se propone una representación interna consultable y una separación entre reglas y decisión. El lenguaje y los algoritmos definitivos requerirán justificar sus alternativas; la presencia de GDL, Minimax o MCTS en esta revisión no los convierte en decisiones de implementación. Con ello se busca fundamentar un agente general dentro del alcance documentado.

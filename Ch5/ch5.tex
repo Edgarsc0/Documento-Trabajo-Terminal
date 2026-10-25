@@ -23,9 +23,9 @@ La arquitectura de la Figura~\ref{fig:arquitectura_diseno} separará reglas, int
 \node[interno, fill=orange!9] (motor) at (5.2,-4.2) {\textbf{Motor de decisión}\\Minimax / alfa-beta\\o MCTS / UCT\\(por seleccionar)\\Búsqueda si $s\notin F$};
 \node[interno] (generador) at (10.4,-4.2) {\textbf{Consultas y generador}\\Acciones $L_i(s)$\\Sucesores $T(s,\mathbf a)$\\Terminalidad $s\in F$\\Utilidades $G_i(s)$};
 
-\node[externo] (aplicar) at (0,-8.8) {\textbf{Aplicación en la partida}\\Usar $T(s,\mathbf a^*)$\\Actualizar turno};
-\node[externo] (estado) at (5.2,-8.8) {\textbf{Entrada por turno}\\Estado actual $s$\\Rol $r_i$ y presupuesto\\Inicialmente $s=s_0$};
-\node[externo] (fin) at (10.4,-8.8) {\textbf{Fin de la partida}\\Si el estado actual $s\in F$\\Reportar $G_i(s)$\\Sin continuar la búsqueda};
+\node[externo] (aplicar) at (0,-10.0) {\textbf{Aplicación en la partida}\\Consultar $T(s,\mathbf a^*)$\\Actualizar turno};
+\node[externo] (estado) at (5.2,-10.0) {\textbf{Entrada por turno}\\Estado actual $s$\\Rol $r_i$ y presupuesto\\Inicialmente $s=s_0$};
+\node[externo] (fin) at (10.4,-10.0) {\textbf{Fin de la partida}\\Si el estado actual $s\in F$\\Reportar $G_i(s)$\\Sin continuar la búsqueda};
 \node[externo, fill=red!5, draw=red!45!black] (error) at (0,2.35) {\textbf{Diagnóstico}\\Descripción rechazada};
 
 \begin{scope}[on background layer]
@@ -42,8 +42,19 @@ La arquitectura de la Figura~\ref{fig:arquitectura_diseno} separará reglas, int
 \draw[flecha] (motor) -- node[etiqueta] {elige} (accion);
 \draw[flecha] (accion) -- node[etiqueta, right, text width=1.65cm] {solo la acción elegida} (aplicar);
 \draw[flecha] (aplicar) -- node[etiqueta, text width=1.25cm] {estado sucesor} (estado);
-\draw[flecha] (estado) -- (motor);
-\draw[flecha] (motor.south east) -- (7.6,-6.5) -- node[etiqueta, above] {$s\in F$} (fin.north west);
+% La coordinación usa el mismo servicio T que las consultas de búsqueda.
+\draw[consulta] (aplicar.north east) -- (2.4,-6.5) --
+    node[etiqueta, above, pos=0.15] {solicitar $T$ real}
+    (10.0,-6.5) -- ([xshift=-4pt]generador.south);
+\draw[consulta] ([xshift=4pt]generador.south) -- (10.6,-7.2) --
+    node[etiqueta, below, pos=0.15] {partida: devolver $s'$}
+    (2.0,-7.2) -- (aplicar.north);
+% El trazo blanco distingue los cruces de líneas sin conexión.
+\draw[flecha, preaction={draw=white,line width=4pt}] (estado) -- (motor);
+\draw[flecha] (modelo.east) -- (12.7,0) -- (12.7,-11.7) --
+    node[etiqueta, below, pos=0.5] {$s_0$: solo al cargar el juego}
+    (5.2,-11.7) -- (estado.south);
+\draw[flecha, preaction={draw=white,line width=4pt}] (motor.south east) -- (7.1,-5.9) -- (7.1,-8.3) -- node[etiqueta, above] {$s\in F$} (fin.north west);
 \end{tikzpicture}
 \caption{Arquitectura propuesta: carga de reglas, consultas de búsqueda y actualización de la partida. Las dos filas principales forman un único flujo; las entradas, salidas y condiciones de terminación se muestran alrededor del núcleo.}
 \label{fig:arquitectura_diseno}
@@ -56,7 +67,7 @@ La arquitectura de la Figura~\ref{fig:arquitectura_diseno} separará reglas, int
     \item \textbf{Motor y ciclo de decisión.} Recibirá estado actual, rol y presupuesto. Si el estado actual es terminal, reportará utilidades y finalizará la partida; en otro caso explorará sucesores y elegirá una acción legal. Los terminales hipotéticos solo servirán para valorar ramas.
 \end{enumerate}
 
-La acción elegida se aplicará mediante $T$ del mismo modelo, obteniendo el estado del siguiente turno. Para formar $\mathbf a^*$ se conservará la convención de acciones inactivas. Esta transición real se distinguirá de los sucesores hipotéticos de la búsqueda.
+La coordinación solicitará al generador la transición real $T(s,\mathbf a^*)$ del mismo modelo y recibirá el sucesor para actualizar el turno. Al cargar una descripción aceptada recibirá $s_0$; en los turnos posteriores utilizará el sucesor recibido. Para formar $\mathbf a^*$ se conservará la convención de acciones inactivas. Esta transición real se distinguirá de los sucesores hipotéticos de la búsqueda.
 
 Se estudiarán Minimax con alfa-beta y MCTS/UCT, con heurísticas generales y selección pendiente. El núcleo conservará sus componentes al cambiar el archivo, sin valores de piezas ni procedimientos particulares del dominio. La evaluación de la Sección~\ref{subsec:evaluacion_propuesta} registrará contadores y contrastará resultados con referencias externas, sin proporcionar sus respuestas al agente.
 

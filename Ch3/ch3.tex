@@ -12,7 +12,7 @@ De ahí nace el interés por agentes que jueguen más de un juego sin reprograma
 
 \section{Juegos de información perfecta}
 
-En teoría de juegos y en inteligencia artificial \cite{Kuhn1953, OsborneRubinstein1994, RussellNorvig2010}, algo que separa a los juegos es cuánto ven los jugadores del entorno. Un juego es de información perfecta cuando todos conocen, en todo momento, el estado completo y exacto de la partida: sin piezas ocultas, cartas boca abajo, movimientos secretos ni reglas desconocidas. El Ajedrez, las Damas y el Gato son los ejemplos de siempre.
+En teoría de juegos y en inteligencia artificial \cite{Kuhn1953, OsborneRubinstein1994, RussellNorvig2010}, algo que separa a los juegos es cuánto ven los jugadores del entorno. En un juego de información perfecta, quien debe decidir conoce la historia completa del juego hasta ese nodo de decisión. Sus conjuntos de información son unitarios. Esta propiedad no exige por sí sola estados discretos, ausencia de azar ni una determinada alternancia; esas restricciones se adoptan adicionalmente en el alcance de este proyecto. El Ajedrez, las Damas y el Gato son los ejemplos de siempre.
 
 Para formalizar esta idea con el modelo de juego ($\Gamma$) de la Sección \ref{sec:modelo_formal_juego}, consideremos un conjunto de jugadores $R = \{r_1, r_2, \dots, r_n\}$ y un conjunto de estados posibles $S$, donde cada estado $s \in S$ es la configuración completa y real del juego en un instante dado.
 
@@ -23,6 +23,7 @@ Conviene distinguir entre lo que el entorno es realmente y lo que cada jugador a
 La relación entre la realidad del juego y lo que ve el participante se modela con la \textbf{función de observación} \cite{Thielscher2010GDLII, RussellNorvig2010}:
 \begin{equation}
     \mathcal{O}_i : S \to \Omega_i
+    \label{eq:funcion-observacion}
 \end{equation}
 que toma el estado real $s \in S$ y devuelve la observación $\mathcal{O}_i(s) \in \Omega_i$ que ve el jugador $r_i$. Se puede pensar en $\mathcal{O}_i$ como un filtro colocado desde el punto de vista del jugador: aunque el juego esté en la configuración completa $s$, solo pasa lo que las reglas le permiten ver. En un juego de cartas, por ejemplo, el filtro borra las cartas del adversario y deja las propias y las comunitarias.
 
@@ -34,6 +35,7 @@ A partir de la función de observación se puede establecer con precisión cuán
 Dado un conjunto de estados $S$, un espacio de observaciones $\Omega_i$ y una función de observación $\mathcal{O}_i : S \to \Omega_i$ \cite{Kuhn1953, OsborneRubinstein1994, Thielscher2010GDLII}, la \textbf{relación de indistinguibilidad} $\sim_i \; \subseteq S \times S$ para el jugador $r_i \in R$ se define como:
 \begin{equation}
     s \sim_i s' \iff \mathcal{O}_i(s) = \mathcal{O}_i(s')
+    \label{eq:indistinguibilidad}
 \end{equation}
 Dos estados $s, s' \in S$ son indistinguibles para el jugador $r_i$ si y solo si producen exactamente la misma proyección perceptual en su codominio de observaciones.
 \end{definicion}
@@ -57,7 +59,7 @@ Para agrupar los estados que un jugador confunde entre sí hay que demostrar que
     \end{equation*}
     Por tanto, $s \sim_i s$ para todo $s \in S$.
     
-Un estado siempre produce la misma vista que él mismo, así que ningún jugador puede confundirlo consigo.
+Un estado es indistinguible de sí mismo bajo la misma función de observación.
     
     \item \textbf{Simetría ($\forall s, s' \in S : s \sim_i s' \implies s' \sim_i s$):}
     Sean $s, s' \in S$ tales que $s \sim_i s'$. Por definición, ambos estados producen la misma observación: $\mathcal{O}_i(s) = \mathcal{O}_i(s')$. En virtud de la simetría de la igualdad matemática, se tiene:
@@ -84,102 +86,69 @@ Si $s$ se ve igual que $s'$ y $s'$ se ve igual que $s''$, los tres estados se ve
 Al satisfacerse la reflexividad, simetría y transitividad, queda formalmente demostrado que $\sim_i$ es una relación de equivalencia sobre $S$. \hfill $\blacksquare$
 \vspace{0.8em}
 
-\subsection{Conjuntos de información de Kuhn (\texorpdfstring{$I_i(s)$}{Ii(s)})}
+\subsection{Conjuntos de información y clases de observación}
 
-Toda relación de equivalencia clasifica los elementos de un conjunto en bloques disjuntos, llamados clases de equivalencia:
-\begin{equation}
-    \mathcal{I}_i = S / \sim_i = \{ [s]_{\sim_i} \mid s \in S \}
-\end{equation}
-En la teoría matemática de juegos formulada originalmente por Kuhn \cite{Kuhn1953} y desarrollada en textos canónicos de teoría de juegos \cite{OsborneRubinstein1994}, a cada clase de equivalencia $[s]_{\sim_i}$ se le llama \textbf{conjunto de información} del jugador $r_i$ ante el estado $s$, denotado formalmente como $I_i(s)$.
-
-\begin{definicion}{Conjunto de información de Kuhn}{conjunto_informacion_kuhn}
-Para un jugador $r_i \in R$ y un estado real del juego $s \in S$, el \textbf{conjunto de información} $I_i(s)$ se define formalmente, siguiendo la formulación canónica de juegos en forma extensiva de Kuhn \cite{Kuhn1953, OsborneRubinstein1994}, como la clase de equivalencia inducida por la relación de indistinguibilidad $\sim_i$:
-\begin{equation}
-    I_i(s) = [s]_{\sim_i} = \{ s' \in S \mid s \sim_i s' \} = \{ s' \in S \mid \mathcal{O}_i(s') = \mathcal{O}_i(s) \}
-\end{equation}
-$I_i(s)$ reúne la totalidad de estados posibles del juego que resultan compatibles con la observación perceptible por el participante en dicho instante.
-\end{definicion}
-
-$I_i(s)$ expresa la duda del participante. Cuando el juego está en el estado real $s$, el jugador no puede afirmar con certeza que ``el juego está en $s$''; lo único que puede sostener es que ``el juego está en alguno de los estados de $I_i(s)$''.
-
-En los juegos de información imperfecta, la función de observación $\mathcal{O}_i$ \textbf{no es inyectiva}: existen al menos dos estados distintos que producen la misma observación ($\exists s, s' \in S, s \neq s' : \mathcal{O}_i(s) = \mathcal{O}_i(s')$). La preimagen de esa observación contiene entonces varios estados y forma un conjunto de información no trivial ($|I_i(s)| > 1$). El participante enfrenta una incertidumbre real, porque no puede saber en cuál de ellos está y debe apoyarse en distribuciones de probabilidad o en creencias para decidir su movimiento.
-
-En los juegos de información perfecta ocurre lo contrario: $\mathcal{O}_i$ es \textbf{estrictamente inyectiva}, y cada estado real produce una observación única que lo identifica sin ambigüedad:
-\begin{equation}
-    \forall s, s' \in S : \quad \mathcal{O}_i(s) = \mathcal{O}_i(s') \implies s = s'
-\end{equation}
-Al ser un mapeo uno a uno, ningún par de estados distintos coincide en su imagen, y la preimagen de cualquier observación es forzosamente un conjunto unitario (\textit{singleton}):
-\begin{equation}
-    \mathcal{O}_i^{-1}(\mathcal{O}_i(s)) = I_i(s) = \{s\}
-\end{equation}
-No queda duda ni ambigüedad perceptual: para cada jugador, el abanico de posibilidades se reduce a la realidad misma.
+En un juego en forma extensiva, una historia $h$ identifica una secuencia de acciones y resultados hasta un nodo. Sea $H_i$ el conjunto de historias en las que debe decidir $r_i$. Un conjunto de información $I_i(h)\subseteq H_i$ agrupa los nodos que ese jugador no distingue a partir de la información que ha recibido, incluido su historial pertinente \cite{Kuhn1953, OsborneRubinstein1994}. No se define, en general, únicamente por la observación del estado presente.
 
 \begin{definicion}{Juego de información perfecta}{info_perfecta}
-Un juego formal con conjunto de jugadores $R$ y conjunto de estados $S$ es de \textbf{información perfecta} \cite{Kuhn1953, OsborneRubinstein1994, Thielscher2010GDLII} si y solo si, para todo jugador $r_i \in R$ y para todo estado $s \in S$, su conjunto de información contiene únicamente el estado real:
-\begin{equation*}
-    \forall r_i \in R, \quad \forall s \in S : \quad I_i(s) = \{s\}
-\end{equation*}
-En otras palabras, el conjunto de información de cada participante tiene siempre un solo elemento (\textit{singleton}), y por eso nadie duda nunca de cuál es la configuración exacta del juego.
+Un juego en forma extensiva es de \textbf{información perfecta} cuando cada conjunto de información de cada jugador en sus nodos de decisión es unitario \cite{Kuhn1953, OsborneRubinstein1994}:
+\begin{equation}
+    \forall r_i\in R,\quad \forall h\in H_i:\quad I_i(h)=\{h\}.
+    \label{eq:informacion-perfecta}
+\end{equation}
+El jugador conoce en qué nodo está al decidir; esto no elimina la incertidumbre sobre las decisiones futuras del adversario ni sobre resultados futuros de azar, si el juego los admite.
 \end{definicion}
 
-\vspace{0.5em}
-\noindent\textbf{Proposición 3.2 (Equivalencia con la inyectividad de la función de observación).} \textit{Un juego formal con espacio de estados $S$ y conjunto de participantes $R$ es de información perfecta si y solo si, para todo jugador $r_i \in R$, su función de observación $\mathcal{O}_i : S \to \Omega_i$ es estrictamente inyectiva.}
-
-\vspace{0.5em}
-\noindent\textbf{Demostración.} Se demuestra la doble implicación ($\iff$):
-\begin{enumerate}
-    \item \textbf{Necesidad ($\implies$):} Supóngase que el juego es de información perfecta. Por la Definición \ref{def:info_perfecta}, para todo $s \in S$ y todo $r_i \in R$, el conjunto de información colapsa a un conjunto unitario:
-    \begin{equation*}
-        I_i(s) = [s]_{\sim_i} = \{ s' \in S \mid \mathcal{O}_i(s') = \mathcal{O}_i(s) \} = \{s\}
-    \end{equation*}
-    Sean $s_1, s_2 \in S$ dos estados arbitrarios tales que producen la misma observación: $\mathcal{O}_i(s_1) = \mathcal{O}_i(s_2)$. Por la definición de la clase de equivalencia, esto implica directamente que $s_1 \in I_i(s_2)$. Dado que el juego es de información perfecta, se tiene que $I_i(s_2) = \{s_2\}$, de lo cual se deduce de manera unívoca que:
-    \begin{equation*}
-        s_1 = s_2
-    \end{equation*}
-    Por tanto, $\mathcal{O}_i(s_1) = \mathcal{O}_i(s_2) \implies s_1 = s_2$, demostrando que $\mathcal{O}_i$ satisface formalmente la definición de una función inyectiva.
-    
-    \item \textbf{Suficiencia ($\impliedby$):} Supóngase que la función de observación $\mathcal{O}_i : S \to \Omega_i$ es estrictamente inyectiva. Sea $s \in S$ un estado arbitrario y considérese su respectivo conjunto de información:
-    \begin{equation*}
-        I_i(s) = \{ s' \in S \mid \mathcal{O}_i(s') = \mathcal{O}_i(s) \}
-    \end{equation*}
-    Por reflexividad de la igualdad, siempre se cumple que $s \in I_i(s)$. Sea ahora cualquier estado $s' \in I_i(s)$. Por definición de pertenencia, se tiene forzosamente que $\mathcal{O}_i(s') = \mathcal{O}_i(s)$. Puesto que la función $\mathcal{O}_i$ es inyectiva por hipótesis, la igualdad de imágenes exige estrictamente que:
-    \begin{equation*}
-        s' = s
-    \end{equation*}
-    En consecuencia, no puede existir ningún elemento en $I_i(s)$ distinto de $s$, concluyéndose que:
-    \begin{equation*}
-        I_i(s) = \{s\}
-    \end{equation*}
-    Al verificarse esta condición para todo jugador $r_i \in R$ y para todo estado $s \in S$, el juego es de información perfecta.
-\end{enumerate}
-Queda formalmente demostrada la equivalencia lógica. \hfill $\blacksquare$
-\vspace{0.8em}
-
-Esta equivalencia deja ver dos situaciones muy distintas para un agente inteligente. Si el juego es de información imperfecta ($\mathcal{O}_i$ no inyectiva), hay al menos dos estados $s \neq s'$ con la misma vista ($\mathcal{O}_i(s) = \mathcal{O}_i(s') = o$). Como el mapeo es de muchos a uno, la preimagen o fibra $\mathcal{O}_i^{-1}(o) = I_i(s)$ agrupa varias configuraciones ($|I_i(s)| > 1$). Esa es la raíz matemática de la incertidumbre de Kuhn: el jugador recibe la observación $o$, pero no tiene manera determinista de invertir la función y decidir si el estado verdadero es $s$ o $s'$.
-
-Si, en cambio, el juego es de información perfecta ($\mathcal{O}_i$ estrictamente inyectiva), ningún par de estados distintos comparte imagen y la preimagen de cualquier observación es siempre un conjunto unitario: $\mathcal{O}_i^{-1}(\mathcal{O}_i(s)) = I_i(s) = \{s\}$. El participante puede entonces invertir la función de observación y reconstruir el estado exacto del mundo:
+Para ilustrar la observación de estados, la relación $\sim_i$ definida antes induce una partición distinta:
 \begin{equation}
-    s = \mathcal{O}_i^{-1}(o)
+    \mathcal C_i=S/\sim_i=\{[s]_{\sim_i}\mid s\in S\}.
+    \label{eq:particion-informacion}
 \end{equation}
-sin asimetrías perceptuales ni incertidumbre táctica sobre el entorno.
+
+\begin{definicion}{Clase de estados compatibles con una observación}{conjunto_informacion_kuhn}
+Para $s\in S$, se denota por $C_i(s)$ la clase de estados que producen la misma observación actual:
+\begin{equation}
+    C_i(s)=[s]_{\sim_i}=\{s'\in S\mid\mathcal O_i(s')=\mathcal O_i(s)\}.
+    \label{eq:conjunto-informacion}
+\end{equation}
+Esta clase describe compatibilidad con una observación de estado; no debe identificarse automáticamente con $I_i(h)$. Historias diferentes pueden llegar a una misma configuración, y un jugador puede conservar información que no aparece en su observación actual.
+\end{definicion}
+
+\noindent\textbf{Proposición 3.2 (Observación completa del estado).} \textit{La función $\mathcal O_i:S\to\Omega_i$ es inyectiva si y solo si $C_i(s)=\{s\}$ para todo $s\in S$.}
+
+\noindent\textbf{Demostración.} Si $\mathcal O_i$ es inyectiva, la igualdad $\mathcal O_i(s')=\mathcal O_i(s)$ implica $s'=s$, por lo que la clase contiene únicamente $s$. Recíprocamente, si todas las clases son unitarias y dos estados producen la misma observación, ambos pertenecen a la misma clase y deben coincidir. \hfill $\blacksquare$
+
+La condición de inyectividad se expresa como:
+\begin{equation}
+    \forall s,s'\in S:\quad\mathcal O_i(s)=\mathcal O_i(s')\implies s=s'.
+    \label{eq:inyectividad-observacion}
+\end{equation}
+En ese caso, cada observación efectivamente producida identifica un único estado. Para $o\in\mathcal O_i(S)$ existe una inversa sobre la imagen:
+\begin{equation}
+    s=\left(\mathcal O_i\big|_{S\to\mathcal O_i(S)}\right)^{-1}(o).
+    \label{eq:reconstruccion-estado}
+\end{equation}
+Esta inversa no se extiende a observaciones ajenas a la imagen. En el modelo del proyecto se supondrá que el estado y los antecedentes públicos necesarios para aplicar las reglas están disponibles. La observación completa de esa representación se distinguirá de la definición sobre historias de la Ecuación~\eqref{eq:informacion-perfecta}.
 
 \subsection{Ejemplos comparativos}
 
 Dos ejemplos ayudan a ver la diferencia.
 
-En el Gato ($R = \{\text{x}, \text{o}\}$), que es un juego de información perfecta, el tablero de $3 \times 3$ está completamente a la vista de ambos jugadores. Si el estado real es $s$ (por ejemplo, una ficha en el centro), la función de observación de cada participante devuelve exactamente ese tablero: $\mathcal{O}_{\text{x}}(s) = s$ y $\mathcal{O}_{\text{o}}(s) = s$. Sus conjuntos de información son, por tanto,
+En el Gato ($R = \{\text{x}, \text{o}\}$), que es un juego de información perfecta, el tablero de $3 \times 3$ está completamente a la vista de ambos jugadores. Si el estado real es $s$ (por ejemplo, una ficha en el centro), la función de observación de cada participante devuelve exactamente ese tablero: $\mathcal{O}_{\text{x}}(s) = s$ y $\mathcal{O}_{\text{o}}(s) = s$. Sus clases de observación del estado son, por tanto,
 \begin{equation}
-    I_{\text{x}}(s) = \{s\}, \quad I_{\text{o}}(s) = \{s\}
+    C_{\text{x}}(s) = \{s\}, \quad C_{\text{o}}(s) = \{s\}
+    \label{eq:gato-informacion-perfecta}
 \end{equation}
 Ninguno duda de qué casillas están marcadas; los dos ven toda la realidad del juego a través de un mapeo inyectivo directo. Lo mismo vale para el Ajedrez.
 
-La Batalla Naval, en cambio, es de información imperfecta. Supongamos que el jugador 1 coloca su barco en la coordenada $(1,1)$ (estado $s_A$) o en la $(1,2)$ (estado $s_B$). Él sabe dónde puso su nave, así que distingue las dos situaciones: $I_1(s_A) = \{s_A\}$ e $I_1(s_B) = \{s_B\}$. El jugador 2, sin embargo, tiene la cuadrícula rival cubierta por niebla, y para él ambos tableros son idénticos: $\mathcal{O}_2(s_A) = \mathcal{O}_2(s_B) = o$. La función no es inyectiva ($s_A \sim_2 s_B$) y resulta
+La Batalla Naval, en cambio, es de información imperfecta. Supongamos que el jugador 1 coloca su barco en la coordenada $(1,1)$ (estado $s_A$) o en la $(1,2)$ (estado $s_B$). Él sabe dónde puso su nave, así que distingue las dos situaciones: $C_1(s_A) = \{s_A\}$ e $C_1(s_B) = \{s_B\}$. El jugador 2, sin embargo, tiene la cuadrícula rival cubierta por niebla, y para él ambos tableros son idénticos: $\mathcal{O}_2(s_A) = \mathcal{O}_2(s_B) = o$. La función no es inyectiva ($s_A \sim_2 s_B$) y resulta
 \begin{equation}
-    I_2(s_A) = I_2(s_B) = \{s_A, s_B\}
+    C_2(s_A) = C_2(s_B) = \{s_A, s_B\}
+    \label{eq:batalla-naval-informacion-imperfecta}
 \end{equation}
-El conjunto de información del jugador 2 tiene dos estados ($|I_2| = 2 > 1$). No sabe si el barco enemigo está en $(1,1)$ o en $(1,2)$ y se ve obligado a adivinar o a estimar probabilidades.
+La clase de observación del jugador 2 tiene dos estados ($|C_2| = 2 > 1$). No sabe si el barco enemigo está en $(1,1)$ o en $(1,2)$ y se ve obligado a adivinar o a estimar probabilidades.
 
-La Figura \ref{fig:kuhn_information_sets} ilustra esquemáticamente esta distinción a través de la representación canónica en teoría de conjuntos de funciones inyectivas y no inyectivas.
+La Figura \ref{fig:kuhn_information_sets} ilustra esquemáticamente esta distinción mediante clases de estados compatibles con observaciones inyectivas y no inyectivas. Es una ilustración de observación de estados, no un árbol de conjuntos de información sobre historias.
 
 \begin{figure}[htbp]
 \centering
@@ -204,7 +173,7 @@ La Figura \ref{fig:kuhn_information_sets} ilustra esquemáticamente esta distinc
 \node[elem] (sa2) at (0, 1.5) {$s_B$};
 \node[elem] (sa3) at (0, 0.5) {$s_C$};
 
-\node[infobox, fit=(sa1) (sa2), label={[font=\tiny\bfseries\color{red!80!black}]left:$I_2 = \{s_A, s_B\}$}] (kuhn_a) {};
+\node[infobox, fit=(sa1) (sa2), label={[font=\tiny\bfseries\color{red!80!black}]left:$C_2 = \{s_A, s_B\}$}] (kuhn_a) {};
 \node[singlebox, fit=(sa3), label={[font=\tiny\bfseries\color{green!60!black}]left:$\{s_C\}$}] (kuhn_a3) {};
 
 % Codominio Omega
@@ -224,10 +193,10 @@ La Figura \ref{fig:kuhn_information_sets} ilustra esquemáticamente esta distinc
 \draw[-{Stealth[scale=0.9]}, thick, draw=purple!80!black] (0.8, 3.6) -- node[above, font=\footnotesize\bfseries] {$\mathcal{O}_2$} (2.5, 3.6);
 
 \node[font=\scriptsize\color{red!80!black}, align=center] (lblA) at (1.65, -0.6) {$\mathcal{O}_2(s_A) = \mathcal{O}_2(s_B) = o_1$\\
-\textbf{Función no inyectiva} $\implies |I_2| > 1$};
+\textbf{Función no inyectiva} $\implies |C_2| > 1$};
 
 \coordinate (topA) at (1.65, 3.9);
-\node[draw=gray!40, rounded corners=6pt, line width=0.6pt, fit=(domA) (codA) (lblA) (topA), inner sep=5pt, label={[font=\footnotesize\bfseries\color{black}]above:(a) Información imperfecta: función no inyectiva}] (panel_a) {};
+\node[draw=gray!40, rounded corners=6pt, line width=0.6pt, fit=(domA) (codA) (lblA) (topA), inner sep=5pt, label={[font=\footnotesize\bfseries\color{black}]above:(a) Observación parcial: función no inyectiva}] (panel_a) {};
 \end{scope}
 
 % ==================== (b) INFORMACIÓN PERFECTA (ESTRICTAMENTE INYECTIVA) ====================
@@ -261,22 +230,22 @@ La Figura \ref{fig:kuhn_information_sets} ilustra esquemáticamente esta distinc
 \draw[-{Stealth[scale=0.9]}, thick, draw=purple!80!black] (0.8, 3.6) -- node[above, font=\footnotesize\bfseries] {$\mathcal{O}$} (2.5, 3.6);
 
 \node[font=\scriptsize\color{green!50!black}, align=center] (lblB) at (1.65, -0.6) {$\mathcal{O}(s) = \mathcal{O}(s') \implies s = s'$\\
-\textbf{Función inyectiva} $\implies I(s) = \{s\}$};
+\textbf{Función inyectiva} $\implies C(s) = \{s\}$};
 
 \coordinate (topB) at (1.65, 3.9);
-\node[draw=gray!40, rounded corners=6pt, line width=0.6pt, fit=(domB) (codB) (lblB) (topB), inner sep=5pt, label={[font=\footnotesize\bfseries\color{black}]above:(b) Información perfecta: función inyectiva (uno a uno)}] (panel_b) {};
+\node[draw=gray!40, rounded corners=6pt, line width=0.6pt, fit=(domB) (codB) (lblB) (topB), inner sep=5pt, label={[font=\footnotesize\bfseries\color{black}]above:(b) Observación completa: función inyectiva (uno a uno)}] (panel_b) {};
 \end{scope}
 
 \end{tikzpicture}
-\caption{Representación en teoría de conjuntos de la función de observación $\mathcal{O}_i : S \to \Omega_i$. En un entorno de información imperfecta (a), la función no es inyectiva y colapsa múltiples estados en una misma observación ($s_A \sim_2 s_B$), induciendo incertidumbre con $|I_2| > 1$. En un juego de información perfecta (b), la función es estrictamente inyectiva (mapeo uno a uno), garantizando que la preimagen de cada observación sea un conjunto unitario ($I(s) = \{s\}$) y eliminando toda incertidumbre sobre la configuración real del juego.}
+\caption{Clases de estados compatibles con una observación. En (a), dos estados producen la misma observación y pertenecen a una clase no unitaria; en (b), la observación inyectiva identifica cada estado. La figura ilustra observación de estados, no conjuntos de información sobre historias.}
 \label{fig:kuhn_information_sets}
 \end{figure}
 
 \subsection{Implicación para el modelo formal \texorpdfstring{$\Gamma$}{Gamma}}
 
-Que un juego cumpla $I_i(s) = \{s\}$ para todos los participantes simplifica bastante el modelo matemático $\Gamma$ de la Sección \ref{sec:modelo_formal_juego}. Por un lado, la función de legalidad $L_i(s)$ y la de utilidad $G_i(s)$ toman directamente como argumento el estado real $s \in S$, de modo que el motor no necesita estimar variables ocultas ni ponderar probabilidades de observación: el jugador siempre conoce el estado exacto. Por otro, en la representación lógica con fluents (Subsección \ref{subsec:fluents}) todos los hechos verdaderos están a la vista de todos, es decir, no hay fluents privados ($\mathcal{F}_{\text{privados}} = \emptyset$) y cualquier proposición verdadera en el estado actual es de conocimiento común.
+La información perfecta permite razonar sin incertidumbre sobre la historia observada en el nodo de decisión. En el modelo de estados del proyecto se conservarán el turno y los antecedentes necesarios para que las consultas $L_i(s)$, $T(s,\mathbf a)$ y $G_i(s)$ tengan argumentos suficientes. En Ajedrez, observar únicamente la colocación de piezas no sustituye los derechos de enroque ni los antecedentes requeridos por las reglas de repetición o captura al paso.
 
-Además, la búsqueda se vuelve determinista y sin incertidumbre. Los algoritmos de decisión del agente (Minimax, poda alfa-beta o Monte Carlo Tree Search) pueden simular directamente transiciones de un estado $s$ a su sucesor $s' = T(s, \mathbf{a})$, y así anticipar las consecuencias de cada jugada explorando un árbol de estados determinista, sin tener que mantener árboles de conjuntos de información ni modelos parcialmente observables (POMDPs).
+El determinismo de $T$ es un supuesto adicional del alcance, independiente de la Ecuación~\eqref{eq:informacion-perfecta}. Por ello una acción conjunta legal producirá un único sucesor. El agente seguirá enfrentando incertidumbre estratégica sobre las acciones del rival y, si se estudia MCTS, podrá emplear muestreo aleatorio dentro de un juego de dinámica determinista.
 
 \section{General Game Playing}
 
@@ -289,7 +258,7 @@ De aquí se sigue algo para este Trabajo Terminal: no queremos un motor de Ajedr
 \section{Modelo formal de juego}
 \label{sec:modelo_formal_juego}
 
-En la literatura de \textit{General Game Playing} \cite{Genesereth2005GGP, GeneserethThielscher2014, Love2008GDL}, un juego se formaliza como un sistema de transición de estados determinista, síncrono y multipartito. Visto así, una partida es la trayectoria que recorre un autómata finito por su espacio de configuraciones, impulsada por las decisiones simultáneas de varios agentes racionales.
+Para el alcance adoptado, se utilizará un modelo de transición finito y determinista, inspirado en GGP clásico \cite{Genesereth2005GGP, GeneserethThielscher2014, Love2008GDL}. Las acciones conjuntas ofrecen una representación computacional uniforme; los turnos secuenciales se codificarán con acciones nulas de los roles inactivos. Esta representación no supone que los participantes del TT decidan simultáneamente.
 
 \begin{definicion}{Juego en General Game Playing}{juego_ggp}
 Un juego formal $\Gamma$ es un sistema de transición de estados finito, determinista, síncrono y de información perfecta caracterizado por una tupla de ocho componentes \cite{Genesereth2005GGP, Love2008GDL, GeneserethThielscher2014}:
@@ -349,20 +318,24 @@ El universo de fluents $\mathcal{F}$ tiene dos clases de proposiciones atómicas
 Al empezar la partida, las nueve casillas están vacías y el turno es de $\text{x}$. El estado inicial $s_0$ es entonces la conjunción de diez fluents verdaderos:
 \begin{equation}
     s_0 \equiv \left( \bigwedge_{r=1}^3 \bigwedge_{c=1}^3 \text{cell}(r, c, \text{b}) \right) \land \text{control}(\text{x})
+    \label{eq:estado-inicial-fluents}
 \end{equation}
 o, en su representación como conjunto:
 \begin{equation}
     s_0 = \{\text{cell}(1,1,\text{b}), \text{cell}(1,2,\text{b}), \dots, \text{cell}(3,3,\text{b}), \text{control}(\text{x})\}
+    \label{eq:estado-inicial-conjunto}
 \end{equation}
 Proposiciones como $\text{cell}(2,2,\text{x})$ no pertenecen a $s_0$ y, por lo tanto, son falsas en $t = 0$.
 
 Si $\text{x}$ marca el centro con la acción $\text{mark}(2, 2)$, la función de transición quita los fluents invalidados y agrega los nuevos:
 \begin{equation}
     s_1 = \big( s_0 \setminus \{\text{cell}(2,2,\text{b}), \text{control}(\text{x})\} \big) \cup \{\text{cell}(2,2,\text{x}), \text{control}(\text{o})\}
+    \label{eq:transicion-gato}
 \end{equation}
 Como conjunción, la nueva configuración $s_1$ queda así:
 \begin{equation}
     s_1 \equiv \text{cell}(2,2,\text{x}) \land \text{control}(\text{o}) \land \bigwedge_{(r,c) \neq (2,2)} \text{cell}(r,c,\text{b})
+    \label{eq:estado-siguiente-fluents}
 \end{equation}
 Las ocho celdas vacías restantes se mantienen igual por inercia.
 
@@ -377,6 +350,7 @@ El elemento distinguido $s_0 \in S$ es la configuración del entorno en el insta
 Para cada rol $r_i \in R$, el conjunto finito $A_i = \{a_{i,1}, a_{i,2}, \dots, a_{i,m_i}\}$ reúne las acciones primitivas que ese participante puede concebir. Como el modelo es síncrono, en cada paso de tiempo todos los jugadores eligen una acción a la vez, y el espacio global de decisiones es el producto cartesiano de los conjuntos individuales:
 \begin{equation}
     \mathbf{A} = \prod_{i=1}^n A_i = A_1 \times A_2 \times \dots \times A_n
+    \label{eq:acciones-conjuntas}
 \end{equation}
 Un elemento $\mathbf{a} = (a_1, a_2, \dots, a_n) \in \mathbf{A}$ es una acción conjunta, un vector de decisiones concurrentes en el que cada componente $a_i \in A_i$ es la jugada del rol $r_i$.
 
@@ -385,12 +359,14 @@ Un elemento $\mathbf{a} = (a_1, a_2, \dots, a_n) \in \mathbf{A}$ es una acción 
 Que una acción sea válida depende del estado actual del sistema. La legalidad de cada jugador $r_i$ se modela con la correspondencia:
 \begin{equation}
     L_i : S \to \mathcal{P}(A_i)
+    \label{eq:funcion-legalidad}
 \end{equation}
 que asigna a cada configuración $s \in S$ el subconjunto de acciones permitidas $L_i(s) \subseteq A_i$. En su formulación relacional original \cite{Genesereth2005GGP, GeneserethThielscher2014}, el criterio se expresa como una relación binaria $L_i \subseteq A_i \times S$, en la que $(a, s) \in L_i$ significa que la acción $a$ se puede ejecutar en $s$; corresponde directamente al predicado \texttt{(legal r a)} \cite{Love2008GDL}.
 
 Una acción conjunta $\mathbf{a} = (a_1, \dots, a_n)$ es legal en el estado $s$ si y solo si cada componente es legal para su rol:
 \begin{equation}
     \mathbf{a} \in \mathbf{L}(s) \iff \forall i \in \{1, \dots, n\}, \quad a_i \in L_i(s)
+    \label{eq:accion-conjunta-legal}
 \end{equation}
 donde $\mathbf{L}(s) = \prod_{i=1}^n L_i(s)$ es el espacio de jugadas conjuntas válidas en ese estado.
 
@@ -399,6 +375,7 @@ donde $\mathbf{L}(s) = \prod_{i=1}^n L_i(s)$ es el espacio de jugadas conjuntas 
 La evolución del juego en el tiempo la rige la función de transición determinista:
 \begin{equation}
     T : S \times \mathbf{A} \to S
+    \label{eq:funcion-transicion}
 \end{equation}
 que determina de forma única el estado sucesor $s' = T(s, \mathbf{a})$ que resulta de aplicar la acción conjunta $\mathbf{a} \in \mathbf{L}(s)$ sobre la configuración $s$. Dos propiedades la caracterizan. Es estrictamente determinista: a diferencia de los procesos estocásticos o del control continuo, evaluar las reglas produce un único estado resultante y no hay incertidumbre en la física del sistema. Y es reactiva y síncrona: el universo cambia solo como consecuencia de las decisiones conjuntas de los agentes, algo que en GDL se especifica con las reglas de deducción de hechos futuros \texttt{(next f)}.
 
@@ -411,12 +388,14 @@ El subconjunto $F \subseteq S$ marca las condiciones en las que termina una part
 Para cada participante $r_i \in R$, la función de utilidad o pago:
 \begin{equation}
     G_i : S \to [0, 100]
+    \label{eq:funcion-utilidad}
 \end{equation}
-Aunque formalmente se puede evaluar en cualquier estado, la función tiene sentido sobre todo en los estados terminales $s \in F$. Siguiendo el estándar de GGP, los valores se normalizan en la escala discreta $[0, 100]$: $100$ es victoria, $0$ derrota y $50$ empate.
+Aunque formalmente se puede evaluar en cualquier estado, la función tiene sentido sobre todo en los estados terminales $s \in F$. En GDL clásico los valores de meta son enteros entre $0$ y $100$ \cite{Love2008GDL}. Para los ejemplos de Gato y Ajedrez se adoptará la convención $100$ para victoria, $0$ para derrota y $50$ para empate; la interpretación de esos valores deberá declararse en cada juego. En este modelo se consultará la utilidad como resultado de la partida en los estados terminales; no se confundirá con una evaluación heurística de estados no terminales.
 
 En los juegos adversariales de dos participantes y suma constante, como el Ajedrez y el Gato, las utilidades terminales cumplen:
 \begin{equation}
     G_1(s) + G_2(s) = 100, \quad \forall s \in F
+    \label{eq:suma-constante}
 \end{equation}
 lo cual asegura el carácter competitivo de suma constante que exigen algoritmos como Minimax. Esta función se calcula con la relación lógica \texttt{(goal r v)}.
 
@@ -444,76 +423,76 @@ En dominios donde podrían presentarse ciclos infinitos, la terminación se aseg
 
 \subsection{Distancia en el grafo de estados y estimación hacia configuraciones terminales}
 
-La relación entre el conjunto de estados terminales $F$ y el axioma de terminación permite definir una noción de distancia en el espacio de estados. En el grafo dirigido que induce la máquina de estados $\Gamma = \langle R, S, s_0, \{A_i\}_{i=1}^n, \{L_i\}_{i=1}^n, T, F, \{G_i\}_{i=1}^n \rangle$, una trayectoria de juego es una secuencia finita de transiciones legales dadas por la función $T(s, \mathbf{a})$. Con esta estructura se puede formalizar la distancia entre dos estados cualesquiera:
+El modelo $\Gamma$ induce un grafo dirigido: sus vértices son estados y sus aristas son transiciones producidas por acciones conjuntas legales desde estados no terminales. Una trayectoria expresa una sucesión posible de jugadas; por sí sola no representa una estrategia que garantice un resultado ante cualquier respuesta del adversario.
 
 \begin{definicion}{Distancia dirigida entre estados}{distancia_estados}
-En un juego formal con espacio de estados $S$, función de transición determinista $T : S \times \mathbf{A} \to S$ y función de legalidad conjunta $\mathbf{L} : S \to \mathcal{P}(\mathbf{A})$, adaptando la formulación de trayectorias en espacios de estados de planificación heurística \cite{BonetGeffner2001, RussellNorvig2010}, la \textbf{distancia en el grafo de estados} $d(s_a, s_b)$ entre una configuración origen $s_a \in S$ y una configuración destino $s_b \in S$ se define como el número mínimo de acciones conjuntas legales requeridas para transitar de $s_a$ a $s_b$:
-\begin{equation*}
-    d(s_a, s_b) = \min \left\{ k \in \mathbb{N} \;\middle|\; \exists \mathbf{a}_0, \dots, \mathbf{a}_{k-1} : s^{(0)} = s_a, \; s^{(j+1)} = T(s^{(j)}, \mathbf{a}_j), \; s^{(k)} = s_b \right\}
-\end{equation*}
-donde cada vector de decisión es admisible en su respectivo estado ($\mathbf{a}_j \in \mathbf{L}(s^{(j)})$ para todo $j \in \{0, \dots, k-1\}$). En caso de que no exista ninguna trayectoria legal originada en $s_a$ que conduzca a $s_b$, la distancia adopta convencionalmente el valor $d(s_a, s_b) = \infty$.
+Para $s_a,s_b\in S$, se define $d(s_a,s_b)$ como la longitud mínima de una trayectoria legal desde $s_a$ hasta $s_b$ \cite{BonetGeffner2001, RussellNorvig2010}:
+\begin{equation}
+    d(s_a,s_b)=\min\left\{k\in\mathbb N_0\;\middle|\;
+    \begin{array}{l}
+    \exists\mathbf a_0,\ldots,\mathbf a_{k-1}:\\
+    s^{(0)}=s_a,\ s^{(k)}=s_b,\\
+    \forall\,0\le j<k:\ s^{(j)}\notin F,\ \mathbf a_j\in\mathbf L(s^{(j)}),\\
+    s^{(j+1)}=T(s^{(j)},\mathbf a_j)
+    \end{array}\right\}.
+    \label{eq:distancia-dirigida}
+\end{equation}
+Se adopta $\min\emptyset=\infty$. La trayectoria vacía admite $k=0$, de modo que $d(s,s)=0$. No es una métrica ordinaria: puede ser asimétrica y puede valer infinito. El superíndice $s^{(j)}$ indica el paso de la trayectoria, no una potencia.
 \end{definicion}
 
-Sobre la notación: el superíndice entre paréntesis $s^{(j)}$ no es una potencia de $s$, sino el \textbf{índice temporal discreto}, es decir, el número de paso a lo largo de la trayectoria. Se usan paréntesis justamente para no confundirlo con un exponente: $s^{(0)} = s_a$ es la configuración inicial, $s^{(1)} = T(s^{(0)}, \mathbf{a}_0)$ el estado tras la primera jugada, $s^{(j)}$ el estado intermedio después de $j$ transiciones y $s^{(k)} = s_b$ el estado final tras $k$ decisiones conjuntas.
-
-Con esta definición se puede obtener la \textbf{distancia al estado terminal más cercano} desde una configuración $s$:
+Para un conjunto de destinos $B\subseteq S$, se entenderá $d(s,B)=\min_{b\in B}d(s,b)$, también con valor infinito si no existe destino alcanzable. En particular:
 \begin{equation}
-    d(s, F) = \min_{s_f \in F} d(s, s_f)
+    d(s,F)=\min_{s_f\in F}d(s,s_f).
+    \label{eq:distancia-terminal}
 \end{equation}
-De aquí se sigue directamente, por el axioma de terminación finita, que para toda configuración alcanzable en una partida legítima ($s \in \text{Reach}(s_0)$) la distancia al conjunto terminal $F$ es finita y está acotada por el horizonte máximo del juego:
+Si el juego finito satisface el axioma de terminación para toda trayectoria legal alcanzable desde $s_0$, existe un horizonte máximo finito $H_{\max}$ y:
 \begin{equation}
-    \forall s \in \text{Reach}(s_0) : \quad 0 \le d(s, F) \le H_{\max} < \infty
+    \forall s\in\operatorname{Reach}(s_0):\quad 0\le d(s,F)\le H_{\max}<\infty.
+    \label{eq:cota-horizonte}
 \end{equation}
-y $d(s, F) = 0$ si y solo si la configuración evaluada ya es un estado terminal ($s \in F$).
+Además, $d(s,F)=0$ si y solo si $s\in F$. La cota depende del supuesto de terminación; la finitud del conjunto de estados no excluye por sí sola ciclos infinitos.
 
-Para la toma de decisiones, el conjunto terminal $F$ no es homogéneo: se divide en clases disjuntas según la utilidad $G_i(s)$ de cada participante. En un juego adversarial de suma constante, un agente que juega con el rol $r_i$ distingue dos regiones dentro de $F$: los estados de victoria $F_{\text{victoria}} = \{s \in F \mid G_i(s) = 100\}$ y los de derrota $F_{\text{derrota}} = \{s \in F \mid G_i(s) = 0\}$. Con esa división se puede medir qué tan cerca está el estado actual de cada desenlace:
+Con la convención de utilidad de los ejemplos y desde el rol $r_i$, sean $F_{\text{victoria}}=\{s\in F\mid G_i(s)=100\}$ y $F_{\text{derrota}}=\{s\in F\mid G_i(s)=0\}$. Las distancias son:
 \begin{align}
-    d(s, F_{\text{victoria}}) &= \min_{s_f \in F_{\text{victoria}}} d(s, s_f) \\
-    d(s, F_{\text{derrota}}) &= \min_{s_f \in F_{\text{derrota}}} d(s, s_f)
+    d(s,F_{\text{victoria}})&=\min_{s_f\in F_{\text{victoria}}}d(s,s_f),\label{eq:distancia-victoria}\\
+    d(s,F_{\text{derrota}})&=\min_{s_f\in F_{\text{derrota}}}d(s,s_f).\label{eq:distancia-derrota}
 \end{align}
+Puede existir una trayectoria corta hacia la victoria que requiera un error del oponente. Por ello, minimizar la primera distancia no equivale a asegurar una victoria. Minimax optimiza la utilidad que puede garantizar frente a respuestas adversariales, según la recurrencia por turnos de la Ecuación~\eqref{eq:recurrencia-minimax}. Un desempate por duración requeriría definir su tratamiento sobre estrategias y no solo sobre el camino favorable más corto.
 
-\noindent
-Los algoritmos de búsqueda adversarial como Minimax buscan maximizar la utilidad terminal esperada $G_i(s)$ del agente, suponiendo que el adversario elegirá las jugadas que la minimicen (principio de inducción hacia atrás):
+Cuando no se alcanza la frontera terminal se utiliza una heurística. La cercanía a una meta puede ser un rasgo de esa evaluación, pero no es por definición una probabilidad de ganar ni garantiza utilidad alta.
+
+Una cota ilustrativa se obtiene para una meta conjuntiva $\mathcal M\subseteq\mathcal F$. Sea $F_{\mathcal M}=\{s_f\in F\mid\mathcal M\subseteq s_f\}$ y:
 \begin{equation}
-    V(s) = \max_{a_i \in L_i(s)} \min_{a_{-i} \in L_{-i}(s)} V\big( T(s, (a_i, a_{-i})) \big)
+    \operatorname{Faltantes}(s,\mathcal M)=\{f\in\mathcal M\mid f\notin s\}.
+    \label{eq:fluents-faltantes}
 \end{equation}
-donde en los nodos terminales $s \in F$ el valor coincide con la utilidad, $V(s) = G_i(s)$. Esta formulación se relaciona con las distancias $d(s, F_{\text{victoria}})$ y $d(s, F_{\text{derrota}})$ de dos maneras.
-
-La primera es como criterio de desempate. Cuando varias ramas llevan a una victoria segura ($G_i(s) = 100$), un agente racional prefiere la acción que minimice $d(s, F_{\text{victoria}})$: gana en menos transiciones y le da menos margen de réplica al adversario. Si la derrota es inevitable ($G_i(s) = 0$), busca lo contrario, maximizar $d(s, F_{\text{derrota}})$, para alargar el final y dar oportunidad a que el rival se equivoque.
-
-La segunda es como heurística sustituta en horizontes finitos. En dominios complejos, la profundidad del juego impide llegar a las hojas terminales y $G_i(s)$ no está disponible en los nodos frontera. Ahí, la cercanía a los subconjuntos terminales, o las cotas calculadas sobre el espacio de \textit{fluents}, funciona como una función heurística que estima la probabilidad o expectativa de ganar y orienta la búsqueda hacia las regiones favorables del espacio de estados.
-
-Sin embargo, en dominios con gran complejidad combinatoria como el Ajedrez, calcular estas distancias de forma exacta con una exploración exhaustiva, por ejemplo una búsqueda en anchura sobre el grafo de estados, es inviable por la explosión exponencial del espacio de búsqueda. Para sortear el obstáculo, en General Game Playing se aprovecha la estructura interna de los \textit{fluents} y se construyen \textbf{cotas inferiores admisibles} que pueden evaluarse rápido durante la ejecución.
-
-Supongamos que una condición terminal de victoria $\mathcal{M} \subset \mathcal{F}$ exige que se cumplan a la vez varios hechos proposicionales (en el Gato, tres fichas juntas en una línea). Se puede contar cuántos de esos \textit{fluents} aún no se han materializado en el estado actual:
+Si en cualquier transición legal se pueden incorporar como máximo $c\ge1$ hechos de esa meta que antes eran falsos, entonces:
 \begin{equation}
-    \text{Faltantes}(s, \mathcal{M}) = \left\{ f \in \mathcal{M} \mid f \notin s \right\}
+    d(s,F_{\mathcal M})\ge\left\lceil\frac{|\operatorname{Faltantes}(s,\mathcal M)|}{c}\right\rceil.
+    \label{eq:cota-distancia-faltantes}
 \end{equation}
-La dinámica del juego limita cuántos hechos meta se pueden agregar en una sola transición. Si llamamos $c \in \mathbb{N}$ a esa cota de producción (típicamente $c = 1$ cuando cada jugador añade a lo sumo una marca o pieza por movimiento), la distancia real al estado terminal tiene una cota inferior analítica:
-\begin{equation}
-    d(s, s_{\mathcal{M}}) \ge \left\lceil \frac{|\text{Faltantes}(s, \mathcal{M})|}{c} \right\rceil
-\end{equation}
-En el Gato, si una configuración $s$ ya tiene dos marcas de $\text{x}$ en una misma fila, al conjunto de hechos faltantes para completar la línea solo le queda un elemento ($|\text{Faltantes}| = 1$). Como $c = 1$, la cota inferior garantiza que la victoria exige al menos una jugada propia, y eso le permite al agente explorar primero esa alternativa antes que otras ramas tácticas secundarias.
+La desigualdad cuenta transiciones conjuntas. En Gato, para una línea fija de X, cada transición agrega a lo sumo una marca de X ($c=1$). Si falta una marca, se requiere al menos una transición; si es turno de O o este bloquea la línea, la cota puede ser poco informativa o el destino inalcanzable. No implica una victoria forzada ni se extiende sin justificar sus supuestos a cualquier condición terminal.
 
-En los motores avanzados de GGP \cite{Clune2007ClunePlayer, Schiffel2007Fluxplayer}, este principio se extiende con la \textbf{relajación de efectos negativos} (\textit{delete relaxation}), una técnica que Bonet y Geffner formularon en planificación heurística \cite{BonetGeffner2001} y que después se adaptó al razonamiento heurístico general. Consiste en ignorar de manera temporal las reglas que destruyen o invalidan \textit{fluents}, suponiendo de forma optimista que los hechos verdaderos nunca se eliminan ni se sobrescriben. Con ese supuesto, encontrar la trayectoria más corta hacia cualquier configuración terminal de $F$ deja de ser intratable y se resuelve en tiempo polinomial. La longitud del camino calculado en el espacio relajado sirve como heurística informada y admisible, y permite estimar numéricamente qué tan cerca está el final de la partida sin usar funciones de evaluación hechas a mano para un juego en particular.
+En planificación, la \textbf{relajación de efectos negativos} elimina las listas de borrado de los operadores: los hechos añadidos no se destruyen \cite{BonetGeffner2001, HoffmannNebel2001FF}. Para tareas proposicionales STRIPS finitas y explícitas, comprobar alcanzabilidad en esa relajación es polinomial, pero obtener la longitud del plan relajado óptimo sigue siendo NP-hard. El óptimo relajado proporciona una cota inferior del costo original bajo esa relajación; aproximaciones eficientes como la extracción de planes de FF no garantizan en general admisibilidad \cite{HoffmannNebel2001FF}. Su traslado a reglas de juegos requiere justificar la representación, la relajación y el papel del adversario; no se considera una garantía general de GGP ni un algoritmo seleccionado para este proyecto.
 
 \subsection{Modelado síncrono de juegos por turnos alternados}
 
-Aunque el producto cartesiano $\mathbf{A} = A_1 \times A_2$ supone que las decisiones son simultáneas, los juegos típicamente secuenciales, como el Gato o el Ajedrez, encajan en este esquema mediante una acción pasiva o nula, $\text{noop}$ (\textit{no-operation}) \cite{Love2008GDL, GeneserethThielscher2014}.
+Aunque $\mathbf{A} = A_1 \times A_2$ reúne las acciones de ambos participantes, los juegos típicamente secuenciales, como el Gato o el Ajedrez, encajan en este esquema mediante una acción pasiva o nula, $\text{noop}$ (\textit{no-operation}) \cite{Love2008GDL, GeneserethThielscher2014}.
 
 En un estado $s$ donde le corresponde mover al jugador blanco, la función de legalidad asigna:
 \begin{align}
-    L_{\text{blancas}}(s) &\subseteq A_{\text{blancas}} \setminus \{\text{noop}\} \\
-    L_{\text{negras}}(s) &= \{\text{noop}\}
+    L_{\text{blancas}}(s) &\subseteq A_{\text{blancas}} \setminus \{\text{noop}\} \label{eq:legalidad-turno-blancas} \\
+    L_{\text{negras}}(s) &= \{\text{noop}\} \label{eq:legalidad-turno-negras}
 \end{align}
-y la única acción conjunta admisible es el par ordenado:
+y cada acción conjunta admisible tiene la forma:
 \begin{equation}
     \mathbf{a} = (a_{\text{blanca}}, \text{noop})
+    \label{eq:accion-turno-blancas}
 \end{equation}
-Al calcular la transición $s' = T(s, \mathbf{a})$, las reglas del juego actualizan los fluents de control y se invierte la legalidad en la siguiente configuración:
+Al calcular la transición $s' = T(s, \mathbf{a})$ mediante la función de la Ecuación~\eqref{eq:funcion-transicion}, las reglas del juego actualizan los fluents de control y si el sucesor no es terminal, se invierte la legalidad en la siguiente configuración:
 \begin{align}
-    L_{\text{blancas}}(s') &= \{\text{noop}\} \\
-    L_{\text{negras}}(s') &\subseteq A_{\text{negras}} \setminus \{\text{noop}\}
+    L_{\text{blancas}}(s') &= \{\text{noop}\} \label{eq:legalidad-siguiente-blancas} \\
+    L_{\text{negras}}(s') &\subseteq A_{\text{negras}} \setminus \{\text{noop}\} \label{eq:legalidad-siguiente-negras}
 \end{align}
 Así la máquina de estados conserva una arquitectura síncrona homogénea sin perder la alternancia secuencial propia del dominio.
 
@@ -653,7 +632,7 @@ Con estas reglas el motor rechaza por sí solo cualquier intento de poner una fi
 
 El tercer bloque (Código \ref{lst:gdl_next}) gobierna la función de transición $T(s, \mathbf{a})$. En lógica declarativa, un hecho no se conserva en el estado siguiente a menos que una regla lo diga de forma explícita, así que hay que definir tanto los cambios directos como la inercia del sistema:
 
-\begin{lstlisting}[caption={Reglas de transicion dinamica e inercia en GDL.},label={lst:gdl_next}]
+\begin{lstlisting}[float=htbp,caption={Reglas de transición dinámica e inercia en GDL.},label={lst:gdl_next}]
 ;; ==========================================
 ;; 4. Funcion de transicion (Siguiente estado)
 ;; ==========================================
@@ -681,10 +660,36 @@ El tercer bloque (Código \ref{lst:gdl_next}) gobierna la función de transició
 
 El cuarto bloque (Código \ref{lst:gdl_terminal_goal}) define el conjunto de estados terminales $F$ y la función de utilidad $G_i(s)$: premia la formación de líneas de tres fichas y reconoce el empate cuando el tablero se llena:
 
-\begin{lstlisting}[caption={Reglas de utilidad (goal) y condicion de terminacion en GDL.},label={lst:gdl_terminal_goal}]
+\begin{lstlisting}[float=p,caption={Reglas de utilidad (goal) y condición de terminación en GDL.},label={lst:gdl_terminal_goal}]
 ;; ==========================================
-;; 5. Condiciones de victoria y utilidades
+;; 5. Lineas, tablero lleno y utilidades
 ;; ==========================================
+;; Lineas completas: filas, columnas y las dos diagonales
+(<= (line ?p)
+    (role ?p)
+    (true (cell ?r 1 ?p))
+    (true (cell ?r 2 ?p))
+    (true (cell ?r 3 ?p)))
+(<= (line ?p)
+    (role ?p)
+    (true (cell 1 ?c ?p))
+    (true (cell 2 ?c ?p))
+    (true (cell 3 ?c ?p)))
+(<= (line ?p)
+    (role ?p)
+    (true (cell 1 1 ?p))
+    (true (cell 2 2 ?p))
+    (true (cell 3 3 ?p)))
+(<= (line ?p)
+    (role ?p)
+    (true (cell 1 3 ?p))
+    (true (cell 2 2 ?p))
+    (true (cell 3 1 ?p)))
+
+;; La negacion se aplica a un predicado sin variables libres
+(<= open (true (cell ?r ?c b)))
+(<= board_full (not open))
+
 ;; Victoria absoluta (100 puntos) si el jugador forma una linea
 (<= (goal ?p 100) (line ?p))
 
@@ -702,7 +707,7 @@ El cuarto bloque (Código \ref{lst:gdl_terminal_goal}) define el conjunto de est
 (<= terminal board_full)
 \end{lstlisting}
 
-Este ejemplo muestra qué tan expresivo puede ser un lenguaje de descripción de juegos: en menos de cincuenta líneas declarativas, y sin una sola instrucción imperativa de control, el archivo describe completo el universo de reglas del Gato.
+Los cuatro bloques incluyen los auxiliares \texttt{line}, \texttt{open} y \texttt{board\_full}. Las líneas se restringen a los roles para que las casillas vacías no se interpreten como una victoria. La partida se detendrá al deducir \texttt{terminal}; las consultas de legalidad y transición se utilizarán únicamente mientras el estado actual no sea terminal. Es una especificación didáctica de Gato en GDL, no una prueba de que el intérprete del proyecto ya esté implementado ni una elección del lenguaje definitivo.
 
 \section{GDL, Ludii y lenguajes de dominio específico}
 
@@ -742,6 +747,7 @@ En un juego formal de dos participantes ($R = \{r_1, r_2\}$) determinista, de in
     \max_{a \in L_1(s)} V(T(s, (a, \text{noop}))) & \text{si el turno corresponde a } r_1 \\ 
     \min_{a \in L_2(s)} V(T(s, (\text{noop}, a))) & \text{si el turno corresponde a } r_2 
     \end{cases}
+    \label{eq:recurrencia-minimax}
 \end{equation}
 La \textbf{decisión óptima} $a^* \in L_i(s)$ para el participante activo corresponde a la acción que optimiza (maximiza para $r_1$, minimiza para $r_2$) el valor del estado sucesor inducido.
 \end{definicion}
@@ -852,7 +858,7 @@ MCTS funciona como un ciclo iterativo y asimétrico de cuatro fases que se repit
 \draw[treeedge] (c11) -- (c111);
 \draw[seledge] (c11) -- (c112);
 
-\node[below=0.15cm of c112, font=\scriptsize\bfseries\color{blue!80!black}] {UCT};
+\node[right=0.1cm of c112, font=\scriptsize\bfseries\color{blue!80!black}] {UCT};
 \node[draw=gray!30, rounded corners=4pt, line width=0.5pt, fit=(r1) (c111) (c12) (c112), inner sep=4pt, label={[font=\scriptsize\bfseries]below:1. Selección}] {};
 \end{scope}
 
@@ -892,7 +898,7 @@ MCTS funciona como un ciclo iterativo y asimétrico de cuatro fases que se repit
 \draw[treeedge] (c312) -- (c3new);
 \draw[simedge] (c3new) -- node[right, font=\tiny] {\textit{Rollout}} (c3term);
 
-\node[right=0.08cm of c3term, font=\tiny\bfseries\color{orange!80!black}] {$R = 100$};
+\node[right=0.08cm of c3term, font=\tiny\bfseries\color{orange!80!black}] {$G_i=100,\ q_i=1$};
 \node[draw=gray!30, rounded corners=4pt, line width=0.5pt, fit=(r3) (c311) (c32) (c3term), inner sep=4pt, label={[font=\scriptsize\bfseries]below:3. Simulación}] {};
 \end{scope}
 
@@ -917,7 +923,7 @@ MCTS funciona como un ciclo iterativo y asimétrico de cuatro fases que se repit
 \draw[backedgel] (c412) to[bend left=25] (c41);
 \draw[backedgel] (c41) to[bend left=25] (r4);
 
-\node[right=0.05cm of r4, font=\tiny\bfseries\color{red!70!black}] {$N++, Q+v$};
+\node[right=0.05cm of r4, font=\tiny\bfseries\color{red!70!black}] {$N{+}{+},\ Q_i{+}{=}q_i$};
 \node[draw=gray!30, rounded corners=4pt, line width=0.5pt, fit=(r4) (c411) (c42) (c4term), inner sep=4pt, label={[font=\scriptsize\bfseries]below:4. Retropropagación}] {};
 \end{scope}
 
@@ -933,16 +939,20 @@ Lo que hace tentador a MCTS para GGP es que no exige heurísticas propias de un 
 Una pregunta central en la fase de selección de MCTS es qué rama explorar. Si el agente explora solo la acción que hasta ese momento parece la mejor, corre el riesgo de ignorar alternativas poco visitadas que en realidad serían superiores. Si explora sin criterio, puede perder tiempo de cómputo en acciones de baja calidad. El algoritmo UCT (\textit{Upper Confidence Bounds applied to Trees}) trata este dilema entre explotación y exploración de manera formal \cite{Kocsis2006UCT, Browne2012MCTS}.
 
 \begin{definicion}{Criterio de selección UCT}{criterio_uct}
-En el marco de Monte Carlo Tree Search \cite{Coulom2006MCTS, Browne2012MCTS}, para cada nodo interno $v$ del árbol de búsqueda, la política de selección \textbf{UCT} (\textit{Upper Confidence Bounds applied to Trees}) \cite{Kocsis2006UCT}, fundamentada en la cota UCB1 para problemas de bandidos multi-brazo \cite{Auer2002UCB}, elige descender hacia el nodo hijo $v^*$ que maximiza la cota superior de confianza:
+Para ilustrar UCT en los juegos por turnos del alcance, sea $p(v)$ el rol activo en el nodo $v$. Por cada simulación que termina en $s_f\in F$, se normalizará el resultado de cada rol como $q_i=G_i(s_f)/100\in[0,1]$. En cada nodo visitado se acumulará ese resultado en $Q_i$ y se incrementará su contador $N$ \cite{Kocsis2006UCT, Browne2012MCTS}.
+
+Si existe un hijo sin visitas, se seleccionará uno de esos hijos antes de evaluar la expresión siguiente; para ilustrar el caso de empate se puede usar cualquier orden fijo. Cuando todos tienen $N(v')>0$, y por tanto $N(v)>0$, se aplicará:
 \begin{equation}
-    v^* = \arg\max_{v' \in \text{hijos}(v)} \left[ \frac{Q(v')}{N(v')} + C \cdot \sqrt{\frac{\ln N(v)}{N(v')}} \right]
+    v^*\in\arg\max_{v'\in\operatorname{hijos}(v)}
+    \left[\frac{Q_{p(v)}(v')}{N(v')}+C\sqrt{\frac{\ln N(v)}{N(v')}}\right],\quad C>0.
+    \label{eq:seleccion-uct}
 \end{equation}
-donde $Q(v')$ denota la recompensa acumulada del nodo hijo $v'$, $N(v')$ es el número de visitas recibidas por dicho hijo, $N(v)$ es el número total de visitas registradas en el nodo padre $v$, y $C > 0$ es la constante teórica de exploración (frecuentemente establecida como $C = \sqrt{2}$ para recompensas normalizadas en el intervalo $[0, 1]$).
+Aquí $Q_i(v')$ suma las recompensas normalizadas del rol $r_i$ en las simulaciones que visitaron $v'$. La media se toma desde la perspectiva del jugador activo en el padre, no siempre desde la raíz. Así ambos participantes buscan su propia utilidad. El parámetro $C$ regula la exploración y no se fija como decisión de implementación.
 \end{definicion}
 
-El primer sumando, $\frac{Q(v')}{N(v')}$, es el componente de explotación: favorece las ramas que han dado una tasa de éxito promedio alta en las simulaciones previas. El segundo, $C \cdot \sqrt{\frac{\ln N(v)}{N(v')}}$, es el término de exploración: mientras el nodo padre se sigue visitando y una rama secundaria $v'$ no se elige, el cociente crece de forma monótona, lo que empuja al árbol a examinar alternativas poco muestreadas y evita que converja demasiado pronto a óptimos locales.
+El primer sumando estima la utilidad media y el segundo favorece acciones poco visitadas. Con esta normalización, la elección $C=\sqrt{2}$ reproduce la forma usual de la cota UCB1 \cite{Auer2002UCB}; no se traslada sin ajuste a acumulados en la escala $[0,100]$. No se evalúan cocientes con cero visitas. En estados terminales no hay selección de sucesores; su utilidad se retropropaga.
 
-En \textit{General Game Playing}, UCT ha sido clave porque ofrece una estrategia general y asintóticamente consistente para dirigir la búsqueda en árboles de juego, sin necesitar funciones de evaluación diseñadas a mano para cada dominio. Goldwaser y Thielscher destacan que los agentes más competitivos de GGP han basado su desempeño en esta combinación de búsqueda por simulación y cotas de confianza, que además sirvió de base para desarrollos recientes con redes neuronales profundas \cite{Goldwaser2020DRLGGP}.
+UCT es un antecedente para la búsqueda por simulación. Sus resultados de consistencia dependen de las hipótesis del análisis, como el horizonte finito o descuento en el artículo original \cite{Kocsis2006UCT}; no aseguran una decisión óptima con un presupuesto finito ni determinan el algoritmo que se implementará.
 
 \section{Aprendizaje por refuerzo y aprendizaje profundo}
 
