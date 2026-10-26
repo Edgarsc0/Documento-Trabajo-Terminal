@@ -1,4 +1,5 @@
 \chapter{Marco Teórico}
+\label{ch:marco_teorico}
 
 \section{Inteligencia artificial en juegos}
 
@@ -242,6 +243,7 @@ La Figura \ref{fig:kuhn_information_sets} ilustra esquemáticamente esta distinc
 \end{figure}
 
 \subsection{Implicación para el modelo formal \texorpdfstring{$\Gamma$}{Gamma}}
+\label{subsec:implicacion_modelo}
 
 La información perfecta permite razonar sin incertidumbre sobre la historia observada en el nodo de decisión. En el modelo de estados del proyecto se conservarán el turno y los antecedentes necesarios para que las consultas $L_i(s)$, $T(s,\mathbf a)$ y $G_i(s)$ tengan argumentos suficientes. En Ajedrez, observar únicamente la colocación de piezas no sustituye los derechos de enroque ni los antecedentes requeridos por las reglas de repetición o captura al paso.
 
@@ -476,6 +478,7 @@ La desigualdad cuenta transiciones conjuntas. En Gato, para una línea fija de X
 En planificación, la \textbf{relajación de efectos negativos} elimina las listas de borrado de los operadores: los hechos añadidos no se destruyen \cite{BonetGeffner2001, HoffmannNebel2001FF}. Para tareas proposicionales STRIPS finitas y explícitas, comprobar alcanzabilidad en esa relajación es polinomial, pero obtener la longitud del plan relajado óptimo sigue siendo NP-hard. El óptimo relajado proporciona una cota inferior del costo original bajo esa relajación; aproximaciones eficientes como la extracción de planes de FF no garantizan en general admisibilidad \cite{HoffmannNebel2001FF}. Su traslado a reglas de juegos requiere justificar la representación, la relajación y el papel del adversario; no se considera una garantía general de GGP ni un algoritmo seleccionado para este proyecto.
 
 \subsection{Modelado síncrono de juegos por turnos alternados}
+\label{subsec:modelado_sincrono}
 
 Aunque $\mathbf{A} = A_1 \times A_2$ reúne las acciones de ambos participantes, los juegos típicamente secuenciales, como el Gato o el Ajedrez, encajan en este esquema mediante una acción pasiva o nula, $\text{noop}$ (\textit{no-operation}) \cite{Love2008GDL, GeneserethThielscher2014}.
 
@@ -497,6 +500,7 @@ Al calcular la transición $s' = T(s, \mathbf{a})$ mediante la función de la Ec
 Así la máquina de estados conserva una arquitectura síncrona homogénea sin perder la alternancia secuencial propia del dominio.
 
 \subsection{Interfaz computacional para el motor de decisión}
+\label{subsec:interfaz_motor}
 
 Para que esta formalización pueda usarse en la arquitectura de software del agente, el motor de juego debe ofrecer una interfaz programática con cinco consultas básicas: obtener el estado inicial ($s_0$); consultar las acciones legales de un jugador en un estado dado ($L_i(s)$); aplicar una acción conjunta y calcular el estado sucesor ($T(s, \mathbf{a})$); determinar si un estado cumple la condición de terminación ($s \in F$); y evaluar la utilidad que obtiene cada participante ($G_i(s)$).
 
@@ -518,6 +522,7 @@ La primera es que se basa en lógica de primer orden y es declarativo. El autor 
 La tercera es su semántica, basada en Datalog con negación estratificada. GDL es una variante estricta de Datalog que limita el uso de funciones recursivas complejas, lo que garantiza que el espacio de estados y la deducción lógica sean finitos y decidibles en cada paso de tiempo, y evita ciclos de inferencia infinitos. La cuarta es el desacoplamiento arquitectónico: la física del juego, descrita en el archivo de reglas, queda totalmente separada de los algoritmos de búsqueda y decisión, que viven en el motor del agente. Por eso el mismo núcleo puede jugar juegos muy distintos sin cambiar una línea de código fuente.
 
 \subsection{Concepto y estructura de un predicado lógico}
+\label{subsec:predicado_logico}
 
 Para entender la sintaxis de GDL sin caer en un formalismo matemático excesivo, conviene partir de la experiencia del desarrollo de software:
 
@@ -536,6 +541,7 @@ Un predicado se escribe como una lista entre paréntesis y tiene tres partes. La
 La tercera parte es la aridad, el número de argumentos que acepta el predicado. Con aridad 0 tenemos una proposición pura, como \texttt{(terminal)}, que no recibe argumentos y expresa un hecho global: si la partida terminó. Con aridad 1, una propiedad de un objeto, por ejemplo \texttt{(role x)} o \texttt{(control x)}, que indican que \texttt{x} es un rol o que tiene el turno. Con aridad 3, una relación ternaria como \texttt{(cell 2 2 x)}, que une renglón, columna y ficha.
 
 \subsubsection{Construcción de reglas de inferencia (\texorpdfstring{\texttt{<=}}{<=})}
+\label{subsec:reglas_inferencia}
 
 Los hechos no siempre están dados de forma estática; muchas veces hay que deducirlos de otros hechos. Para eso, GDL usa reglas de inferencia con el operador de implicación \texttt{<=}, que se lee ``la cabeza es verdadera si todas las premisas del cuerpo son verdaderas'':
 
@@ -550,6 +556,7 @@ Los hechos no siempre están dados de forma estática; muchas veces hay que dedu
 El motor lógico solo da por cierta la cabeza si logra verificar que todas las condiciones del cuerpo se cumplen a la vez en el estado del juego.
 
 \subsection{Predicados reservados del sistema en GDL}
+\label{subsec:predicados_reservados}
 
 Para que un archivo de reglas describa la tupla formal $\Gamma$ de la Sección \ref{sec:modelo_formal_juego}, GDL define un conjunto cerrado de ocho predicados del sistema \cite{Love2008GDL, GeneserethThielscher2014}, que se resumen en la Tabla \ref{tab:predicados_gdl}.
 
@@ -728,6 +735,7 @@ La representación interna hace de puente entre el lenguaje textual y los algori
 En las implementaciones avanzadas de GGP, las reglas también pueden compilarse en estructuras más eficientes. Goldwaser y Thielscher señalan que una descripción GDL puede convertirse en una red proposicional (PropNet), con nodos lógicos, de entrada, de salida y de transición \cite{Goldwaser2020DRLGGP}. Esto interesa porque interpretar las reglas desde cero en cada nodo de búsqueda resulta caro. Una PropNet completa quizá quede fuera de una primera versión, pero la idea sirve para entender por qué la eficiencia de la representación interna pesa tanto como el algoritmo de búsqueda.
 
 \section{Árboles de juego y explosión combinatoria}
+\label{sec:explosion_combinatoria}
 
 Con acciones legales y transiciones ya se puede armar un árbol de juego \cite{RussellNorvig2010}: la raíz es el estado actual, de ella salen tantas ramas como acciones legales haya, y cada rama termina en el estado que produce esa acción. Si el proceso se repite, el agente ve hacia adelante y puede comparar a dónde lleva cada decisión.
 

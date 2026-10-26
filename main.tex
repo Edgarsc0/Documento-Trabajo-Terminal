@@ -97,6 +97,9 @@
 % Personalización de la tabla de contenido
 \usepackage{tocloft}
 
+% Incluir subsubsecciones en el índice
+\setcounter{tocdepth}{3}
+
 % Portada institucional
 \usepackage{titlepage}
 
@@ -188,6 +191,80 @@
     bottom=7pt,
     breakable
 }{def}
+
+\newtcbtheorem[number within=chapter]{proposicion}{Proposici\'on}{
+    colback=blue!3,
+    colframe=blue!45!black,
+    coltitle=black,
+    colbacktitle=blue!12,
+    fonttitle=\bfseries,
+    sharp corners,
+    boxrule=0.8pt,
+    titlerule=0.5pt,
+    left=8pt,
+    right=8pt,
+    top=7pt,
+    bottom=7pt,
+    breakable
+}{prop}
+
+\newtcbtheorem[number within=chapter]{teorema}{Teorema}{
+    colback=violet!3,
+    colframe=violet!55!black,
+    coltitle=black,
+    colbacktitle=violet!12,
+    fonttitle=\bfseries,
+    sharp corners,
+    boxrule=0.8pt,
+    titlerule=0.5pt,
+    left=8pt,
+    right=8pt,
+    top=7pt,
+    bottom=7pt,
+    breakable
+}{teo}
+
+\newtcbtheorem[number within=chapter]{ejemplo}{Ejemplo}{
+    colback=green!3,
+    colframe=green!40!black,
+    coltitle=black,
+    colbacktitle=green!10,
+    fonttitle=\bfseries,
+    sharp corners,
+    boxrule=0.8pt,
+    titlerule=0.5pt,
+    left=8pt,
+    right=8pt,
+    top=7pt,
+    bottom=7pt,
+    breakable
+}{ej}
+
+\newtcolorbox{observacion}{
+    colback=orange!4,
+    colframe=orange!60!black,
+    sharp corners,
+    boxrule=0.6pt,
+    leftrule=3pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    breakable,
+    title={Observación},
+    coltitle=black,
+    colbacktitle=orange!14,
+    fonttitle=\bfseries
+}
+
+% Notación del análisis del lenguaje de descripción
+\newcommand{\kw}[1]{\texttt{#1}}
+\newcommand{\sem}[1]{[\![#1]\!]}
+
+% Tablero de Gato de 3x3 para figuras (casillas en orden de lectura)
+\newcommand{\tcel}[1]{\makebox[0.75em]{#1}}
+\newcommand{\tablero}[9]{{\setlength{\tabcolsep}{1.5pt}\renewcommand{\arraystretch}{0.85}\scriptsize\ttfamily%
+\begin{tabular}{@{}c|c|c@{}}\tcel{#1}&\tcel{#2}&\tcel{#3}\\\hline\tcel{#4}&\tcel{#5}&\tcel{#6}\\\hline\tcel{#7}&\tcel{#8}&\tcel{#9}\end{tabular}}}
 
 % ============================================================
 %                 CONFIGURACIÓN DE LISTINGS (GDL)
