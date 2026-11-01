@@ -1,0 +1,118 @@
+% Tema local de la presentación de TT1 (TT 2027-A178). Requiere XeLaTeX.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tema_tt1}[2026/10/24 Tema Beamer TT1 General Game Player]
+
+\RequirePackage{fontspec}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds, calc, shapes.geometric}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+\RequirePackage{tabularx}
+\RequirePackage{listings}
+\RequirePackage[skins]{tcolorbox}
+
+% ------------------------------------------------------------
+% Tipografía portable
+% ------------------------------------------------------------
+\setmainfont{TeX Gyre Heros}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{TeX Gyre Cursor}[Scale=0.92]
+
+% ------------------------------------------------------------
+% Paleta
+% ------------------------------------------------------------
+\definecolor{vino}{HTML}{6D1F3A}
+\definecolor{vinooscuro}{HTML}{4A1426}
+\definecolor{vinoclaro}{HTML}{E3C9D2}
+\definecolor{azulp}{HTML}{2F4B6E}
+\definecolor{marfil}{HTML}{FBFAF8}
+\definecolor{marfildos}{HTML}{F4F0EC}
+\definecolor{carbon}{HTML}{26262B}
+\definecolor{gris}{HTML}{5C5C63}
+\definecolor{linea}{HTML}{D9D4D0}
+\definecolor{ambar}{HTML}{8A5A00}
+
+% ------------------------------------------------------------
+% Beamer
+% ------------------------------------------------------------
+\usetheme{default}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=1.0cm, text margin right=1.0cm}
+\setbeamercolor{background canvas}{bg=marfil}
+\setbeamercolor{normal text}{fg=carbon}
+\setbeamercolor{structure}{fg=vino}
+\setbeamercolor{item}{fg=vino}
+\setbeamercolor{itemize item}{fg=vino}
+\setbeamercolor{itemize subitem}{fg=azulp}
+\setbeamercolor{enumerate item}{fg=vino}
+\setbeamercolor{caption name}{fg=vino}
+\setbeamerfont{caption}{size=\scriptsize}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{itemize item}{\raisebox{0.15ex}{\scriptsize$\blacksquare$}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.1ex}{\tiny$\blacksquare$}}
+\setbeamertemplate{enumerate item}{\insertenumlabel.}
+\setbeamerfont{itemize/enumerate body}{size=\small}
+\setbeamerfont{itemize/enumerate subbody}{size=\footnotesize}
+\setbeamertemplate{items}[default]
+\setlength{\leftmargini}{1.1em}
+
+\setbeamerfont{frametitle}{size=\Large, series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\scriptsize, series=\bfseries}
+
+\setbeamertemplate{background}{%
+  \vbox to \paperheight{\color{vino}\rule{\paperwidth}{0.14cm}\vss}%
+}
+
+\setbeamertemplate{frametitle}{%
+  \vskip0.7em
+  {\usebeamerfont{framesubtitle}\color{vino}\MakeUppercase{\insertframesubtitle}\par}%
+  \vskip0.15em
+  {\usebeamerfont{frametitle}\color{carbon}\insertframetitle\par}%
+  \vskip0.25em
+}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox to \paperwidth{%
+    \hspace{1.0cm}{\color{gris}\fontsize{6}{7}\selectfont ESCOM-IPN \textperiodcentered{} TT 2027-A178 \textperiodcentered{} General Game Player}%
+    \hfill{\color{gris}\fontsize{6}{7}\selectfont\insertframenumber}\hspace{1.0cm}}%
+  \vskip0.28cm
+}
+
+% ------------------------------------------------------------
+% Macros de apoyo
+% ------------------------------------------------------------
+% Fuente breve al pie de la lámina
+\newcommand{\fuente}[1]{\vfill{\color{gris}\fontsize{6}{7.5}\selectfont Fuente: #1\par}\vspace{0.1cm}}
+
+% Sellos de estado: propuesta, pendiente, prototipo visual
+\newcommand{\sello}[2][vino]{%
+  \tikz[baseline=(t.base)]\node[fill=#1,text=white,rounded corners=1.5pt,inner xsep=3pt,inner ysep=1.5pt,font=\fontsize{6}{7}\selectfont\bfseries](t){\MakeUppercase{#2}};}
+
+% Tarjeta con franja superior de color. Las tarjetas de una misma lámina
+% comparten altura (grupo por número de lámina); \grupoalto puede redefinirse
+% dentro de la lámina para excluir una tarjeta.
+\newcommand{\tarjetaalto}{0pt}
+\newcommand{\grupoalto}{fr\insertframenumber}
+\newtcolorbox{tarjeta}[1][vino]{%
+  enhanced, colback=marfildos, colframe=marfildos, boxrule=0pt, arc=1.5pt,
+  borderline north={1.6pt}{0pt}{#1}, equal height group=\grupoalto, valign=top,
+  left=5pt, right=5pt, top=3pt, bottom=3pt, before skip=1.5pt, after skip=1.5pt,
+  fontupper=\footnotesize\raggedright}
+
+% Banda de énfasis
+\newtcolorbox{banda}[1][vino]{%
+  enhanced, colback=#1, colframe=#1, boxrule=0pt, arc=1.5pt, coltext=white,
+  left=7pt, right=7pt, top=4pt, bottom=4pt, before skip=3pt, after skip=3pt,
+  fontupper=\small\raggedright}
+
+% Estilo de listados para reglas GDL
+\lstdefinelanguage{GDL}{
+  keywords={role, init, true, does, legal, next, terminal, goal, distinct, not},
+  sensitive=true, comment=[l]{;}}
+\lstdefinestyle{gdl}{
+  language=GDL, basicstyle=\ttfamily\fontsize{6.8}{8.4}\selectfont,
+  keywordstyle=\color{vino}\bfseries, commentstyle=\color{azulp}\itshape,
+  backgroundcolor=\color{marfildos}, frame=single, rulecolor=\color{linea},
+  columns=fullflexible, keepspaces=true, showstringspaces=false, xleftmargin=2pt, xrightmargin=2pt}
+\lstset{style=gdl}

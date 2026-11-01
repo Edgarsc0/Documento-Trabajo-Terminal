@@ -1,0 +1,630 @@
+% Presentación de TT1 - TT 2027-A178 - General Game Player
+% Compilar con XeLaTeX y Biber (ver guion_orador.md):
+%   xelatex presentacion_tt1 && biber presentacion_tt1 && xelatex presentacion_tt1 && xelatex presentacion_tt1
+\documentclass[aspectratio=169,10pt,t]{beamer}
+
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{csquotes}
+\usepackage{amsmath}
+\usepackage[backend=biber,style=ieee,sorting=none,maxbibnames=3]{biblatex}
+\addbibresource{../References/biblio.bib}
+\renewcommand*{\bibfont}{\fontsize{6.5}{8}\selectfont}
+
+\usepackage{tema_tt1}
+\graphicspath{{../Images/}{../Images/mockups/}}
+
+\hypersetup{pdftitle={TT 2027-A178 General Game Player. Presentación de TT1},
+            pdfauthor={Sánchez Catarino Edgar; Linares Villegas Gustavo}}
+
+\tikzset{
+  caja/.style={draw=linea, line width=.6pt, fill=marfildos, rounded corners=2pt, align=center,
+               font=\footnotesize\bfseries, minimum height=0.95cm, text width=2.7cm, inner sep=3pt},
+  cajav/.style={caja, fill=vino, draw=vino, text=white},
+  cajaa/.style={caja, fill=azulp, draw=azulp, text=white},
+  flecha/.style={-{Stealth[length=2mm]}, line width=.8pt, draw=gris},
+  consulta/.style={-{Stealth[length=2mm]}, line width=.8pt, draw=azulp},
+}
+
+\newcommand{\mini}[2]{%
+  \begin{minipage}[t]{3.7cm}\centering
+    \fboxsep=0pt\fcolorbox{linea}{white}{\includegraphics[width=3.64cm]{#1}}\\[1pt]
+    {\fontsize{6.5}{8}\selectfont #2}
+  \end{minipage}}
+
+% Diagrama de Gantt del respaldo C: fila, etiqueta, mes inicial, meses, color
+\def\gw{0.58}
+\def\gx{7.0}
+\newcommand{\gfila}[5]{%
+  \node[anchor=west, font=\fontsize{6.4}{7.6}\selectfont, text=carbon] at (0,-#1*0.375) {#2};
+  \fill[marfildos] (\gx,-#1*0.375-0.14) rectangle (\gx+11*\gw,-#1*0.375+0.14);
+  \fill[#5] (\gx+#3*\gw,-#1*0.375-0.14) rectangle (\gx+#3*\gw+#4*\gw-0.03,-#1*0.375+0.14);}
+
+\begin{document}
+
+% ============================================================
+%  1. Portada
+% ============================================================
+{
+\setbeamercolor{background canvas}{bg=vinooscuro}
+\setbeamertemplate{background}{}
+\setbeamertemplate{footline}{}
+\setbeamercolor{normal text}{fg=marfil}
+\begin{frame}[plain,t]
+\color{marfil}
+\vspace{0.2cm}
+\begin{minipage}[c]{2.2cm}
+  \fboxsep=3pt\colorbox{white}{\includegraphics[height=1.4cm]{logo-ipn.png}}
+\end{minipage}\hfill
+\begin{minipage}[c]{8.8cm}\centering
+  {\fontsize{9}{11}\selectfont\bfseries\color{vinoclaro} INSTITUTO POLITÉCNICO NACIONAL\\ ESCUELA SUPERIOR DE CÓMPUTO}
+\end{minipage}\hfill
+\begin{minipage}[c]{2.2cm}\raggedleft
+  \fboxsep=3pt\colorbox{white}{\includegraphics[height=1.15cm]{ESCOM.png}}
+\end{minipage}
+
+\vspace{0.55cm}
+{\fontsize{8}{10}\selectfont\color{vinoclaro} Trabajo Terminal I \textperiodcentered{} Registro 2027-A178 \textperiodcentered{} Ingeniería en Sistemas Computacionales\par}
+\vspace{0.3cm}
+{\fontsize{17}{20}\selectfont\bfseries Desarrollo de un General Game Player (GGP) utilizando un lenguaje de descripción de reglas para juegos de información perfecta\par}
+\vspace{0.7cm}
+\begin{minipage}[t]{6.5cm}
+  {\fontsize{7}{9}\selectfont\bfseries\color{vinoclaro} PRESENTAN}\\[2pt]
+  {\fontsize{10}{13}\selectfont Sánchez Catarino Edgar\\ Linares Villegas Gustavo}
+\end{minipage}
+\begin{minipage}[t]{6.5cm}
+  {\fontsize{7}{9}\selectfont\bfseries\color{vinoclaro} DIRECTOR}\\[2pt]
+  {\fontsize{10}{13}\selectfont Dr. en C. Enrique Escalante Notario}
+\end{minipage}
+\end{frame}
+}
+
+% ============================================================
+%  2. Idea central
+% ============================================================
+\begin{frame}{Desacoplar las reglas del motor}
+\framesubtitle{Idea central}
+\small
+{\bfseries\color{gris} Motor especializado}\par\vspace{3pt}
+\begin{center}
+\begin{tikzpicture}
+  \node[caja] (a1) {Reglas en el código};
+  \node[caja, right=0.7cm of a1] (a2) {Búsqueda acoplada};
+  \node[caja, right=0.7cm of a2] (a3) {Un solo juego};
+  \draw[flecha] (a1)--(a2); \draw[flecha] (a2)--(a3);
+\end{tikzpicture}
+\end{center}
+\vspace{2pt}
+{\bfseries\color{vino} General Game Player}\par\vspace{3pt}
+\begin{center}
+\begin{tikzpicture}
+  \node[cajav, text width=2.5cm] (b1) {Archivo de reglas externo};
+  \node[cajaa, text width=2.5cm, right=0.6cm of b1] (b2) {Intérprete};
+  \node[cajaa, text width=2.5cm, right=0.6cm of b2] (b3) {Motor de búsqueda};
+  \node[cajav, text width=2.7cm, right=0.6cm of b3] (b4) {Juegos del alcance};
+  \draw[flecha] (b1)--(b2); \draw[flecha] (b2)--(b3); \draw[flecha] (b3)--(b4);
+\end{tikzpicture}
+\end{center}
+\begin{banda}
+Al cambiar de juego se carga otra descripción y se construye su modelo; el núcleo conserva su código.
+\end{banda}
+\fuente{Cap.~1, \S1.2 y \S1.5; Cap.~3, \S3.3 \cite{Genesereth2005GGP, GeneserethThielscher2014}.}
+\end{frame}
+
+% ============================================================
+%  3. Problema
+% ============================================================
+\begin{frame}{Un agente por juego: la hiperespecialización}
+\framesubtitle{Problema}
+\renewcommand{\tarjetaalto}{2.45cm}
+\begin{columns}[T]
+\column{.315\textwidth}
+\begin{tarjeta}
+{\scriptsize\bfseries\color{vino} 1959 \textperiodcentered{} Damas}\\[2pt]
+{\normalsize\bfseries Samuel}\\[2pt]
+Minimax con evaluación heurística y mejora con la experiencia \cite{Samuel1959}.
+\end{tarjeta}
+\column{.315\textwidth}
+\begin{tarjeta}
+{\scriptsize\bfseries\color{vino} 1997 \textperiodcentered{} Ajedrez}\\[2pt]
+{\normalsize\bfseries Deep Blue}\\[2pt]
+Búsqueda alfa-beta masivamente paralela con una evaluación hecha para ajedrez \cite{Campbell2002DeepBlue}.
+\end{tarjeta}
+\column{.315\textwidth}
+\begin{tarjeta}
+{\scriptsize\bfseries\color{vino} 2018 \textperiodcentered{} Ajedrez, Shogi y Go}\\[2pt]
+{\normalsize\bfseries AlphaZero}\\[2pt]
+Un mismo algoritmo, pero las reglas de cada juego siguen programadas en su simulador \cite{Silver2018AlphaZero}.
+\end{tarjeta}
+\end{columns}
+\vspace{4pt}
+\begin{banda}
+\large Estos sistemas utilizan reglas y representaciones definidas para sus juegos.
+\end{banda}
+\vspace{2pt}
+{\small Shannon estimó del orden de $10^{43}$ configuraciones de piezas y $10^{120}$ variantes bajo supuestos de ramificación y duración. Son estimaciones distintas, no un censo de posiciones legales \cite{Shannon1950}.\par}
+\fuente{Cap.~1, \S1.1--\S1.2; Cap.~2, \S2.1.}
+\end{frame}
+
+% ============================================================
+%  4. Objetivos
+% ============================================================
+\begin{frame}{Un núcleo, varios juegos}
+\framesubtitle{Objetivos}
+\begin{columns}[T]
+\column{.36\textwidth}
+\begin{banda}
+{\scriptsize\bfseries\color{vinoclaro} OBJETIVO GENERAL}\\[3pt]
+\small Un GGP para juegos de información perfecta que interprete las reglas desde un lenguaje de descripción, sin modificar el código de su motor base.
+\end{banda}
+\column{.62\textwidth}
+\small
+\begin{enumerate}
+\setlength\itemsep{3pt}
+\item Diseñar la sintaxis y la semántica del lenguaje de reglas.
+\item Desarrollar el intérprete y el generador de estados.
+\item Implementar el motor de decisión del agente.
+\item Validar la generalización con Gato y Ajedrez, de modo que el cambio de comportamiento dependa solo del archivo.
+\item Evaluar el desempeño táctico en Ajedrez mediante partidas contra un motor con ELO configurable.
+\end{enumerate}
+\end{columns}
+\vspace{4pt}
+\begin{tarjeta}[azulp]
+{\scriptsize\bfseries ENFOQUE DE TT1}\\[1pt]
+Revisión, planeación, análisis y diseño. Los cinco productos del protocolo corresponden al proyecto completo; esta etapa fija las bases documentales para construirlos y validarlos.
+\end{tarjeta}
+\fuente{Cap.~1, \S1.4 y \S1.6.5 \cite{ProtocoloTT2027A178}.}
+\end{frame}
+
+% ============================================================
+%  5. Alcance
+% ============================================================
+\begin{frame}{Cuatro condiciones que delimitan los juegos}
+\framesubtitle{Alcance}
+\renewcommand{\tarjetaalto}{2.2cm}
+\begin{columns}[T]
+\column{.235\textwidth}
+\begin{tarjeta}[azulp]
+{\bfseries Información perfecta}\\[2pt]
+\footnotesize Todos ven el estado completo y el historial en todo momento.
+\end{tarjeta}
+\column{.235\textwidth}
+\begin{tarjeta}[azulp]
+{\bfseries Discretos}\\[2pt]
+\footnotesize Estados y acciones finitos y enumerables.
+\end{tarjeta}
+\column{.235\textwidth}
+\begin{tarjeta}[azulp]
+{\bfseries Deterministas}\\[2pt]
+\footnotesize Sin azar: cada acción produce un único estado sucesor.
+\end{tarjeta}
+\column{.235\textwidth}
+\begin{tarjeta}[azulp]
+{\bfseries Por turnos}\\[2pt]
+\footnotesize Los jugadores alternan de forma secuencial.
+\end{tarjeta}
+\end{columns}
+\vspace{6pt}
+\renewcommand{\grupoalto}{aparte}
+\begin{tarjeta}[gris]
+{\scriptsize\bfseries FUERA DE ALCANCE}\\[2pt]
+\small Competir con Stockfish \textperiodcentered{} replicar AlphaZero o Student of Games \textperiodcentered{} juegos con azar o información oculta.
+\end{tarjeta}
+\vspace{4pt}
+{\small Casos de estudio: el \textbf{Gato}, pequeño y revisable por completo, y el \textbf{Ajedrez}, en el otro extremo de complejidad. La información perfecta no implica por sí sola determinismo: la exclusión del azar es un supuesto adicional.\par}
+\fuente{Cap.~1, \S1.5 \cite{Silver2018AlphaZero, Schmid2023StudentOfGames}.}
+\end{frame}
+
+% ============================================================
+%  6. Estado del arte
+% ============================================================
+\begin{frame}{General Game Playing: de heurísticas a simulación}
+\framesubtitle{Estado del arte}
+\renewcommand{\tarjetaalto}{3.15cm}
+\begin{columns}[T]
+\column{.235\textwidth}
+\begin{tarjeta}
+{\scriptsize\bfseries\color{vino} 2005--2006}\\[1pt]
+{\bfseries Heurísticas inferidas}\\[2pt]
+\footnotesize ClunePlayer y Fluxplayer: Minimax con evaluación derivada de las reglas \cite{Clune2007ClunePlayer, Schiffel2007Fluxplayer}.
+\end{tarjeta}
+\column{.235\textwidth}
+\begin{tarjeta}[azulp]
+{\scriptsize\bfseries\color{azulp} 2007--2012}\\[1pt]
+{\bfseries Monte Carlo Tree Search}\\[2pt]
+\footnotesize CadiaPlayer: UCT y simulaciones aleatorias, sin heurística de dominio \cite{Finnsson2008CadiaPlayer}.
+\end{tarjeta}
+\column{.235\textwidth}
+\begin{tarjeta}
+{\scriptsize\bfseries\color{vino} 2014--2015}\\[1pt]
+{\bfseries Competencia GGP}\\[2pt]
+\footnotesize Sancho: agente ganador de la competencia internacional de GGP en 2014 \cite{DraperRose2014Sancho}.
+\end{tarjeta}
+\column{.235\textwidth}
+\begin{tarjeta}[azulp]
+{\scriptsize\bfseries\color{azulp} 2018--hoy}\\[1pt]
+{\bfseries Otros lenguajes y aprendizaje}\\[2pt]
+\footnotesize Ludii, RBG y aprendizaje profundo en GGP \cite{Browne2020Ludii, Kowalski2019RBG, Goldwaser2020DRLGGP}.
+\end{tarjeta}
+\end{columns}
+\vspace{5pt}
+{\small GGP nace en 2005 con Stanford y la AAAI: agentes que reciben la descripción formal de un juego desconocido y lo juegan sin cambios en su código \cite{Genesereth2005GGP}.\par}
+\fuente{Cap.~2, \S2.2--\S2.6.}
+\end{frame}
+
+% ============================================================
+%  7. Modelo formal
+% ============================================================
+\begin{frame}{Un juego es un sistema de transición de estados}
+\framesubtitle{Modelo formal}
+\begin{banda}[vinooscuro]
+\centering\Large $\Gamma=\langle R,\ S,\ s_0,\ \{A_i\},\ \{L_i\},\ T,\ F,\ \{G_i\}\rangle$
+\end{banda}
+\vspace{2pt}
+\begin{columns}[T]
+\column{.48\textwidth}
+\small
+\begin{itemize}\setlength\itemsep{2pt}
+\item[$R$] Roles o jugadores.
+\item[$S$] Estados, como conjuntos de hechos (\emph{fluents}).
+\item[$s_0$] Estado inicial.
+\item[$A_i$] Acciones de cada rol.
+\end{itemize}
+\column{.48\textwidth}
+\small
+\begin{itemize}\setlength\itemsep{2pt}
+\item[$L_i$] Legalidad: $L_i:S\to\mathcal{P}(A_i)$.
+\item[$T$] Transición determinista: $T:S\times\mathbf{A}\to S$.
+\item[$F$] Estados terminales.
+\item[$G_i$] Utilidad: $G_i:S\to[0,100]$.
+\end{itemize}
+\end{columns}
+\vspace{4pt}
+\begin{tarjeta}[azulp]
+\footnotesize
+\textbf{Interfaz hacia el motor:} estado inicial, acciones legales, aplicar acción, \emph{¿es terminal?} y utilidad. Un juego bien formado cumple \emph{jugabilidad} (todo rol tiene una acción legal en estados no terminales) y \emph{terminación} garantizada. Los turnos alternados usan la acción nula \texttt{noop}.
+\end{tarjeta}
+\fuente{Cap.~3, \S3.4 \cite{Genesereth2005GGP, Love2008GDL, GeneserethThielscher2014}.}
+\end{frame}
+
+% ============================================================
+%  8. Reglas externas
+% ============================================================
+\begin{frame}[fragile]{Reglas externas: GDL, subconjunto o DSL}
+\framesubtitle{Lenguaje de descripción}
+\begin{columns}[T]
+\column{.47\textwidth}
+{\scriptsize\bfseries\color{vino} EJEMPLO EN GDL: GATO}\par\vspace{2pt}
+\begin{lstlisting}
+; legalidad
+(<= (legal ?p (mark ?r ?c))
+    (true (control ?p))
+    (true (cell ?r ?c b)))
+
+; alternancia de turno
+(<= (next (control o))
+    (true (control x)))
+(<= (next (control x))
+    (true (control o)))
+\end{lstlisting}
+{\scriptsize Las reglas se \emph{declaran}: el motor deduce las consecuencias.\par}
+\column{.51\textwidth}
+\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+GDL completo & Base académica y semántica lógica general; puede resultar pesado para un prototipo acotado. \\
+\midrule
+Subconjunto & Puede simplificar la implementación; exige delimitar y justificar qué se admite. \\
+\midrule
+DSL propio & Se concentra en lo que el proyecto necesita y puede ser más legible (como Ludii); debe justificarse formalmente. \\
+\bottomrule
+\end{tabularx}
+\end{columns}
+\fuente{Cap.~3, \S3.5--\S3.6 \cite{Love2008GDL, Soemers2024Ludii}.}
+\end{frame}
+
+% ============================================================
+%  9. Arquitectura
+% ============================================================
+\begin{frame}{El motor de decisión no conoce ningún juego}
+\framesubtitle{Arquitectura propuesta}
+\centering
+\begin{tikzpicture}[node distance=0.27cm]
+  \tikzset{nodoarq/.append style={font=\fontsize{7.2}{8.6}\selectfont\bfseries, text width=2.15cm}}
+  \node[cajav, nodoarq] (reglas) {Reglas externas\\{\fontsize{6.5}{7.5}\selectfont\mdseries GDL, subconjunto o DSL}};
+  \node[cajaa, nodoarq, right=of reglas] (interp) {Intérprete\\{\fontsize{6.5}{7.5}\selectfont\mdseries validación}};
+  \node[cajaa, nodoarq, right=of interp] (modelo) {Modelo interno $\Gamma$\\{\fontsize{6.5}{7.5}\selectfont\mdseries reglas y $s_0$}};
+  \node[cajaa, nodoarq, right=of modelo] (gen) {Generador\\{\fontsize{6.5}{7.5}\selectfont\mdseries $L_i,\ T,\ F,\ G_i$}};
+  \node[cajaa, nodoarq, right=of gen] (motor) {Motor de decisión\\{\fontsize{6.5}{7.5}\selectfont\mdseries búsqueda general}};
+  \draw[flecha] (reglas)--(interp);
+  \draw[flecha] (interp)--(modelo);
+  \draw[flecha] (modelo)--(gen);
+  \draw[consulta] ([yshift=4pt]motor.west)--([yshift=4pt]gen.east);
+  \draw[consulta] ([yshift=-4pt]gen.east)--([yshift=-4pt]motor.west);
+  \begin{scope}[on background layer]
+    \node[draw=azulp, dashed, rounded corners=3pt, fit=(interp)(modelo)(gen)(motor), inner sep=6pt] (nucleo) {};
+  \end{scope}
+  \node[anchor=south east, font=\fontsize{6.5}{8}\selectfont\bfseries, text=azulp] at ([yshift=1pt]nucleo.north east) {Núcleo reutilizable entre juegos};
+  \node[anchor=north, font=\fontsize{6.5}{8}\selectfont, text=gris, text width=2.8cm, align=center] at ([yshift=-0.1cm]interp.south |- nucleo.south) {rechaza descripciones inválidas con un diagnóstico};
+  \node[anchor=north, font=\fontsize{6.5}{8}\selectfont, text=azulp, text width=3.4cm, align=center] at ([yshift=-0.1cm,xshift=1.4cm]gen.south |- nucleo.south) {solicitudes y resultados de consulta (flechas azules)};
+\end{tikzpicture}
+
+\vspace{0.35cm}
+\begin{columns}[T]
+\column{.48\textwidth}
+\begin{tarjeta}[vino]
+\footnotesize\raggedright
+\textbf{Por turno:} entran el estado $s$, el rol y un presupuesto. Si $s\in F$, se reportan utilidades; si no, el motor explora sucesores hipotéticos y elige una acción legal.
+\end{tarjeta}
+\column{.48\textwidth}
+\begin{tarjeta}[azulp]
+\footnotesize\raggedright
+\textbf{Cambiar de juego:} se carga otra descripción y se construye su modelo interno. El núcleo conserva su código. La arquitectura es una propuesta conceptual.
+\end{tarjeta}
+\end{columns}
+\fuente{Cap.~5, \S5.1 (Figura~5.1) y Cap.~3, \S3.7.}
+\end{frame}
+
+% ============================================================
+%  10. Análisis del lenguaje
+% ============================================================
+\begin{frame}{De una descripción de reglas a un juego formal}
+\framesubtitle{Análisis del lenguaje}
+\begin{columns}[T]
+\column{.48\textwidth}
+\begin{tarjeta}[azulp]
+{\bfseries Análisis de GDL}
+{\small
+\begin{itemize}\setlength\itemsep{4pt}
+\item Sintaxis y predicados del lenguaje.
+\item Restricciones de validez y semántica.
+\item Ejemplos de la resta y del Gato.
+\item Descripciones defectuosas y requisitos para el intérprete.
+\end{itemize}}
+\end{tarjeta}
+\column{.48\textwidth}
+\begin{tarjeta}[vino]
+{\bfseries Del archivo al modelo}
+\begin{itemize}\setlength\itemsep{4pt}
+\item Identificar símbolos y estructura de las reglas.
+\item Comprobar restricciones de la descripción.
+\item Asociar las reglas válidas al modelo $\Gamma$.
+\item Consultar legalidad, transiciones y resultados.
+\end{itemize}
+\end{tarjeta}
+\end{columns}
+\fuente{Cap.~4, análisis del lenguaje de descripción de juegos.}
+\end{frame}
+
+% ============================================================
+%  11. Métricas
+% ============================================================
+\begin{frame}{¿Cómo comprobaremos que funciona?}
+\framesubtitle{Métricas propuestas}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.35cm}@{}}
+\toprule
+Aspecto & Procedimiento & Indicador que se reportará \\
+\midrule
+Corrección funcional & Comparar acciones legales y sucesores con una referencia; verificar terminalidad y utilidades. & Porcentajes separados para legalidad, transición, terminalidad y utilidad. \\
+Calidad de decisión & Gato: comparar con soluciones óptimas. Ajedrez: primera jugada aceptada; acciones inválidas y tiempos agotados son fallos. & Porcentaje de aciertos por juego. \\
+Costo de búsqueda & Medir cada decisión durante las pruebas. & Tiempo (mediana y p95), nodos expandidos y profundidad en medias jugadas; simulaciones MCTS aparte. \\
+Generalidad operativa & Ejecutar ambos juegos con las mismas versiones del intérprete y del motor. & Versiones y componentes modificados. \\
+\bottomrule
+\end{tabularx}
+\vspace{3pt}
+{\scriptsize Los indicadores de acierto usan $P_k=100C_k/N_k$, con denominadores separados. Es una propuesta de evaluación; todavía no hay resultados.\par}
+\fuente{Cap.~1, \S1.6, Tabla~1.2. Las muestras se presentan en la evaluación propuesta.}
+\end{frame}
+
+% ============================================================
+%  12. Prototipos de interfaz
+% ============================================================
+\begin{frame}{Prototipos de interfaz aprobados}
+\framesubtitle{Diseño de la interacción}
+\centering
+\mini{mockup_reglas.png}{Carga y validación de reglas}\hspace{0.2cm}%
+\mini{mockup_gato.png}{Partida de Gato}\hspace{0.2cm}%
+\mini{mockup_chess.png}{Partida de Ajedrez}
+
+\vspace{0.05cm}
+\mini{mockup_evaluacion.png}{Preparación de la evaluación}\hspace{0.2cm}%
+\mini{mockup_resultados.png}{Reporte de resultados}
+
+\vspace{0.05cm}
+{\raggedright\sello[ambar]{prototipo visual}\ {\fontsize{6.5}{8}\selectfont Datos simulados: no hay interfaz, intérprete ni agente implementados.\par}}
+\fuente{Cap.~5, \S5.2 (Figuras~5.2--5.6).}
+\end{frame}
+
+% ============================================================
+%  13. Validación planeada
+% ============================================================
+\begin{frame}{Evaluación propuesta para Gato y Ajedrez}
+\framesubtitle{Validación planeada}
+\renewcommand{\tarjetaalto}{4.4cm}
+\begin{columns}[T]
+\column{.485\textwidth}
+\begin{tarjeta}[vino]
+{\bfseries Gato} \sello[azulp]{propuesta} \ {\scriptsize caso funcional completo}
+\begin{itemize}\setlength\itemsep{1pt}\scriptsize
+\item Revisión exhaustiva de estados alcanzables, contrastada con una referencia independiente.
+\item Cargar reglas, generar solo movimientos legales y jugar partidas completas con victoria y empate.
+\item Coincidencia del 100\,\% en los casos funcionales (propuesta).
+\end{itemize}
+\end{tarjeta}
+\column{.485\textwidth}
+\begin{tarjeta}[azulp]
+{\bfseries Ajedrez}
+\begin{itemize}\setlength\itemsep{1pt}\scriptsize
+\item Banco piloto exploratorio: 60 posiciones funcionales en seis familias.
+\item 30 problemas tácticos de primera jugada \cite{LichessPuzzles}.
+\item python-chess como referencia de pruebas \cite{PythonChessCore}.
+\item Partidas contra un motor con ELO configurable, conforme al objetivo específico.
+\end{itemize}
+\end{tarjeta}
+\end{columns}
+\vspace{2pt}
+\begin{banda}[vinooscuro]
+\scriptsize Los bancos de 60 posiciones funcionales y 30 problemas tácticos son exploratorios; complementarían las partidas contra motor previstas en el objetivo.
+\end{banda}
+\fuente{Cap.~1, \S1.6 (Tablas~1.2 y~1.3) \cite{ProtocoloTT2027A178, MejoraAcademicaTT2027A178}.}
+\end{frame}
+
+% ============================================================
+%  14. Metodología, hitos y cronograma
+% ============================================================
+\begin{frame}{Etapas del desarrollo}
+\framesubtitle{Metodología}
+\small
+{\bfseries\color{gris} Cuatro etapas del protocolo}\par\vspace{3pt}
+\begin{center}
+\begin{tikzpicture}
+  \node[caja, text width=2.55cm] (e1) {1. Diseño del lenguaje};
+  \node[caja, text width=2.55cm, right=0.45cm of e1] (e2) {2. Módulo intérprete};
+  \node[caja, text width=2.55cm, right=0.45cm of e2] (e3) {3. Agente};
+  \node[caja, text width=2.55cm, right=0.45cm of e3] (e4) {4. Integración y validación};
+  \foreach \a/\b in {e1/e2,e2/e3,e3/e4} \draw[flecha] (\a)--(\b);
+\end{tikzpicture}
+\end{center}
+\vspace{2pt}
+\begin{tarjeta}[azulp]
+\small
+\textbf{Enfoque iterativo e incremental:} cada ciclo produce un entregable revisable y las observaciones orientan el siguiente.\\[5pt]
+\textbf{Cronograma del protocolo:} actividades de agosto a junio, distribuidas entre los dos integrantes (detalle en el respaldo C).
+\end{tarjeta}
+\fuente{Cap.~1, \S1.6; Cap.~9 \cite{ProtocoloTT2027A178}.}
+\end{frame}
+
+% ============================================================
+%  16. Cierre
+% ============================================================
+{
+\setbeamercolor{background canvas}{bg=vinooscuro}
+\setbeamertemplate{background}{}
+\setbeamertemplate{footline}{}
+\setbeamercolor{normal text}{fg=marfil}
+\begin{frame}[plain,t]
+\color{marfil}
+\vspace{0.5cm}
+{\fontsize{7}{9}\selectfont\bfseries\color{vinoclaro} APORTACIÓN}\par\vspace{3pt}
+{\fontsize{18}{21}\selectfont\bfseries Una arquitectura desacoplada: reglas externas, motor general\par}
+\vspace{0.6cm}
+\begin{columns}[T]
+\column{.31\textwidth}
+\rule{\linewidth}{1.2pt}\\[3pt]
+{\small Un núcleo de decisión sin conocimiento de ningún juego.}
+\column{.31\textwidth}
+\rule{\linewidth}{1.2pt}\\[3pt]
+{\small Un lenguaje de reglas con semántica explícita.}
+\column{.31\textwidth}
+\rule{\linewidth}{1.2pt}\\[3pt]
+{\small Al cambiar de juego, se carga otra descripción y se conserva el núcleo.}
+\end{columns}
+\vspace{0.8cm}
+{\fontsize{20}{24}\selectfont\bfseries Gracias \textperiodcentered{} Preguntas\par}
+\vspace{0.4cm}
+{\footnotesize\color{vinoclaro} Sánchez Catarino Edgar \textperiodcentered{} Linares Villegas Gustavo\\ Director: Dr. en C. Enrique Escalante Notario\par}
+\end{frame}
+}
+
+% ============================================================
+%  RESPALDO
+% ============================================================
+\appendix
+
+% ---------- A. GDL ----------
+\begin{frame}[fragile]{Predicados reservados de GDL}
+\framesubtitle{Respaldo A}
+\begin{columns}[T]
+\column{.54\textwidth}
+\scriptsize
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\linewidth}{@{}>{\ttfamily}p{2.45cm}X@{}}
+\toprule
+\textrm{Predicado} & Componente de $\Gamma$ \\
+\midrule
+(role ?r) & Roles $R$ \\
+(init ?f) & Estado inicial $s_0$ \\
+(true ?f) & Fluent verdadero en $s$ \\
+(does ?r ?a) & Acción $a$ del rol $r$ \\
+(legal ?r ?a) & Legalidad $L_i(s)$ \\
+(next ?f) & Sucesor $T(s,\mathbf{a})$ \\
+terminal & Estados terminales $F$ \\
+(goal ?r ?v) & Utilidad $G_i(s)$ \\
+\bottomrule
+\end{tabularx}
+\column{.43\textwidth}
+\begin{lstlisting}
+(role x)
+(role o)
+(init (cell 1 1 b))
+; ... las demas casillas
+(init (control x))
+(<= (legal ?p noop)
+    (role ?p)
+    (not (true (control ?p))))
+\end{lstlisting}
+\end{columns}
+\vspace{3pt}
+{\footnotesize GDL es declarativo (Datalog con negación estratificada), independiente del dominio y desacopla la física del juego de los algoritmos de búsqueda.\par}
+\fuente{Cap.~3, \S3.5 \cite{Love2008GDL, GeneserethThielscher2014}.}
+\end{frame}
+
+% ---------- B. Algoritmos ----------
+\begin{frame}{Minimax, alfa-beta y MCTS con UCT}
+\framesubtitle{Respaldo B}
+\footnotesize
+\begin{columns}[T]
+\column{.485\textwidth}
+\begin{tarjeta}[vino]
+{\bfseries Minimax y poda alfa-beta}\\[2pt]
+$V(s)=\begin{cases}G_1(s) & s\in F\\ \max_{a\in L_1(s)}V(T(s,(a,\text{noop}))) & \text{turno de }r_1\\ \min_{a\in L_2(s)}V(T(s,(\text{noop},a))) & \text{turno de }r_2\end{cases}$\\[3pt]
+Alfa-beta no cambia la decisión: poda ramas que no pueden mejorar el resultado conocido. Con profundidad limitada se requiere una evaluación general.
+\end{tarjeta}
+\column{.485\textwidth}
+\begin{tarjeta}[azulp]
+{\bfseries MCTS y selección UCT}\\[2pt]
+Ciclo: selección, expansión, simulación y retropropagación.\\[2pt]
+$v^{*}=\arg\max_{v'}\left[\dfrac{Q_{p(v)}(v')}{N(v')}+C\sqrt{\dfrac{\ln N(v)}{N(v')}}\right]$\\[3pt]
+Primero se seleccionan hijos sin visitas. $Q_{p(v)}$ acumula recompensas normalizadas del jugador activo.\\[2pt]
+Equilibra explotación y exploración sin heurísticas propias de un juego.
+\end{tarjeta}
+\end{columns}
+\fuente{Cap.~3, \S3.9--\S3.13 \cite{Browne2012MCTS, Kocsis2006UCT, RussellNorvig2010}.}
+\end{frame}
+
+% ---------- C. Cronograma ----------
+\begin{frame}{Cronograma del protocolo, de agosto a junio}
+\framesubtitle{Respaldo C}
+\centering
+\begin{tikzpicture}
+  \foreach \m/\t in {0/Ago,1/Sep,2/Oct,3/Nov,4/Dic,5/Ene,6/Feb,7/Mar,8/Abr,9/May,10/Jun}
+    \node[font=\fontsize{6.4}{7.6}\selectfont\bfseries, text=gris] at (\gx+\m*\gw+\gw/2,0.25) {\t};
+  \gfila{0}{E · Fundamentación teórica y representación matemática}{0}{3}{vino}
+  \gfila{1}{E · Programación de reglas, validación y movimientos}{3}{3}{vino}
+  \gfila{2}{E · Agente inteligente y optimización de búsqueda}{6}{2}{vino}
+  \gfila{3}{E · Integración del motor base}{6}{2}{vino}
+  \gfila{4}{E · Archivo de descripción de Ajedrez}{8}{1}{vino}
+  \gfila{5}{E · Capítulos técnicos y manuales}{8}{2}{vino}
+  \gfila{6}{E · Revisión final y preparación de la defensa}{10}{1}{vino}
+  \gfila{7}{G · Estado del arte y definición del problema}{0}{3}{azulp}
+  \gfila{8}{G · Árboles de búsqueda y función heurística}{2}{4}{azulp}
+  \gfila{9}{G · Diseño y ejecución de experimentos}{6}{2}{azulp}
+  \gfila{10}{G · Análisis estadístico y conclusiones}{8}{1}{azulp}
+  \gfila{11}{G · Capítulos técnicos y manuales}{8}{2}{azulp}
+  \gfila{12}{G · Revisión final y preparación de la defensa}{10}{1}{azulp}
+\end{tikzpicture}
+
+\vspace{0.1cm}
+{\scriptsize E = Sánchez Catarino Edgar; G = Linares Villegas Gustavo. Las barras indican el periodo programado. Nombres abreviados.\par}
+\fuente{Cap.~9 \cite{ProtocoloTT2027A178}.}
+\end{frame}
+
+% ---------- Referencias ----------
+\begin{frame}[allowframebreaks]{Referencias citadas}
+\framesubtitle{Respaldo}
+\printbibliography[heading=none]
+\end{frame}
+
+\end{document}
